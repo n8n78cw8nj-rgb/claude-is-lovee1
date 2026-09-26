@@ -18,12 +18,12 @@ export const khinkaliTypes = [
   {
     title: 'Классические',
     description: 'С пряным мясом и ароматным наваристым бульоном внутри.',
-    icon: 'khinkali',
+    image: '/images/khinkali-classic.webp',
   },
   {
     title: 'Жареные',
     description: 'С аппетитной хрустящей корочкой для любителей ярких вкусов.',
-    icon: 'khinkali',
+    image: '/images/khinkali-fried.webp',
   },
   {
     title: 'С сыром',

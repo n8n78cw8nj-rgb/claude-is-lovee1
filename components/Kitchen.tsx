@@ -28,7 +28,13 @@ export function Kitchen() {
               key={item.title}
               className="flex flex-col items-center rounded-2xl border-t-[3px] border-t-gold bg-cream-light p-6 text-center"
             >
-              <IconBadge icon={item.icon} />
+              {'image' in item ? (
+                <div className="relative h-14 w-14 overflow-hidden rounded-full">
+                  <Image src={item.image} alt={item.title} fill className="object-cover" />
+                </div>
+              ) : (
+                <IconBadge icon={item.icon} />
+              )}
               <h4 className="mt-3 font-display text-xl font-bold">{item.title}</h4>
               <p className="mt-2 text-sm text-ink-soft">{item.description}</p>
             </div>
