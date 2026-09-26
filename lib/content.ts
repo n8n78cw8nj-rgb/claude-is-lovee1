@@ -18,21 +18,25 @@ export const khinkaliTypes = [
   {
     title: 'Классические',
     description: 'С пряным мясом и ароматным наваристым бульоном внутри.',
+    icon: 'khinkali',
   },
   {
     title: 'Жареные',
     description: 'С аппетитной хрустящей корочкой для любителей ярких вкусов.',
+    icon: 'khinkali',
   },
   {
     title: 'С сыром',
     description: 'Нежные, тягучие и сливочные.',
+    icon: 'khinkali',
   },
-];
+] as const;
 
 export const menuItems = [
   {
     title: 'Чебуреки',
     description: 'Тончайшее хрустящее тесто, сочное мясо и ни капли лишнего масла.',
+    icon: 'cheburek',
   },
   {
     title: 'Хачапури',
@@ -47,16 +51,19 @@ export const menuItems = [
   {
     title: 'Пельмени и вареники',
     description: 'Лепим и то, и другое: классические пельмени и вареники с картофелем или грибами.',
+    icon: 'pelmeni',
   },
   {
     title: 'Наваристые супы',
     description: 'От сытных мясных до лёгких овощных.',
+    icon: 'soup',
   },
   {
     title: 'Мясо на гриле',
     description: 'Ароматные блюда для полноценного и сытного ужина.',
+    icon: 'grill',
   },
-];
+] as const;
 
 export const testimonial = {
   quote: 'За свежими летними салатами — куда? Правильно, только в «ПРОTESTO». Очень вкусно!',

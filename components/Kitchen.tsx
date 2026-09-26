@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { khinkaliTypes, menuItems } from '@/lib/content';
+import { IconBadge } from '@/components/icons/DishIcons';
 
 export function Kitchen() {
   return (
@@ -23,8 +24,12 @@ export function Kitchen() {
 
         <div className="mt-8 grid gap-6 sm:grid-cols-3">
           {khinkaliTypes.map((item) => (
-            <div key={item.title} className="rounded-2xl border border-ink/10 bg-cream-light p-6">
-              <h4 className="font-display text-xl font-bold">{item.title}</h4>
+            <div
+              key={item.title}
+              className="flex flex-col items-center rounded-2xl border-t-[3px] border-t-gold bg-cream-light p-6 text-center"
+            >
+              <IconBadge icon={item.icon} />
+              <h4 className="mt-3 font-display text-xl font-bold">{item.title}</h4>
               <p className="mt-2 text-sm text-ink-soft">{item.description}</p>
             </div>
           ))}
@@ -38,12 +43,14 @@ export function Kitchen() {
           {menuItems.map((item) => (
             <div
               key={item.title}
-              className="flex items-center gap-5 rounded-2xl border border-ink/10 bg-cream-light p-5"
+              className="flex items-center gap-5 rounded-2xl border-t-[3px] border-t-gold bg-cream-light p-5"
             >
-              {item.image && (
-                <div className="relative h-20 w-20 shrink-0 overflow-hidden rounded-xl">
+              {'image' in item ? (
+                <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl">
                   <Image src={item.image} alt={item.title} fill className="object-cover" />
                 </div>
+              ) : (
+                <IconBadge icon={item.icon} size={72} />
               )}
               <div>
                 <h4 className="font-display text-lg font-bold">{item.title}</h4>
