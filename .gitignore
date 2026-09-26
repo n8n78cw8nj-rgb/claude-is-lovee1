@@ -1,0 +1,15 @@
+node_modules/
+.next/
+out/
+build/
+.env
+.env.local
+.env*.local
+*.tsbuildinfo
+next-env.d.ts
+.DS_Store
+Thumbs.db
+
+# Локальное файловое хранилище заявок (не коммитить — содержит персональные данные)
+/data/*.json
+!/data/.gitkeep

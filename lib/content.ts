@@ -1,0 +1,62 @@
+export const cafe = {
+  name: 'ПРОTESTO',
+  city: 'Тутаев',
+  address: 'г. Тутаев, просп. 50-летия Победы, 11',
+  phone: '+7 (962) 200-49-99',
+  phoneHref: 'tel:+79622004999',
+  vkHandle: 'vk.ru/mesto_protesto',
+  vkHref: 'https://vk.ru/mesto_protesto',
+  owner: 'Идрис',
+  hours: [
+    { days: 'Понедельник — Пятница', time: '10:00 – 22:00' },
+    { days: 'Суббота — Воскресенье', time: '11:00 – 22:00' },
+  ],
+};
+
+export const khinkaliTypes = [
+  {
+    title: 'Классические',
+    description: 'С пряным мясом и ароматным наваристым бульоном внутри.',
+  },
+  {
+    title: 'Жареные',
+    description: 'С аппетитной хрустящей корочкой для любителей ярких вкусов.',
+  },
+  {
+    title: 'С сыром',
+    description: 'Нежные, тягучие и сливочные.',
+  },
+];
+
+export const menuItems = [
+  {
+    title: 'Чебуреки',
+    description: 'Тончайшее хрустящее тесто, сочное мясо и ни капли лишнего масла.',
+  },
+  {
+    title: 'Хачапури',
+    description: 'Пышные, румяные, с большим количеством тягучего сыра прямо из печи.',
+    image: '/images/khachapuri.webp',
+  },
+  {
+    title: 'Наваристые супы',
+    description: 'От сытных мясных до лёгких овощных.',
+  },
+  {
+    title: 'Мясо на гриле',
+    description: 'Ароматные блюда для полноценного и сытного ужина.',
+  },
+];
+
+export const lunchIncludes = [
+  'Первое горячее блюдо',
+  'Сытное второе',
+  'Свежий салат',
+  'Приятный комплимент от кафе в подарок',
+];
+
+export const galleryImages = [
+  { src: '/images/khachapuri.webp', alt: 'Хачапури с расплавленным сыром' },
+  { src: '/images/zastolye.webp', alt: 'Закуски и домашние лимонады' },
+  { src: '/images/dolma.webp', alt: 'Долма с соусом и свежими томатами' },
+];
