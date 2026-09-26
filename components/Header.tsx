@@ -3,6 +3,7 @@ import { cafe } from '@/lib/content';
 
 const navLinks = [
   { href: '#kitchen', label: 'Меню' },
+  { href: '#bar', label: 'Бар' },
   { href: '#lunch', label: 'Обеды' },
   { href: '#delivery', label: 'Доставка' },
   { href: '#contacts', label: 'Контакты' },

@@ -2,6 +2,7 @@ import { Header } from '@/components/Header';
 import { Hero } from '@/components/Hero';
 import { Atmosphere } from '@/components/Atmosphere';
 import { Kitchen } from '@/components/Kitchen';
+import { Bar } from '@/components/Bar';
 import { Gallery } from '@/components/Gallery';
 import { Testimonial } from '@/components/Testimonial';
 import { BusinessLunch } from '@/components/BusinessLunch';
@@ -18,6 +19,7 @@ export default function HomePage() {
         <Hero />
         <Atmosphere />
         <Kitchen />
+        <Bar />
         <Gallery />
         <Testimonial />
         <BusinessLunch />
