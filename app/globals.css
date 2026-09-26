@@ -20,14 +20,18 @@
   }
 
   .btn-primary {
-    @apply btn bg-brick text-cream-light hover:bg-brick-dark;
+    @apply btn bg-forest text-cream-light hover:bg-forest-dark;
   }
 
   .btn-outline {
-    @apply btn border border-ink/30 text-ink hover:border-ink hover:bg-ink hover:text-cream-light;
+    @apply btn border border-ink/30 text-ink hover:border-forest hover:bg-forest hover:text-cream-light;
   }
 
   .eyebrow {
-    @apply text-xs font-semibold uppercase tracking-[0.2em] text-brick;
+    @apply text-xs font-semibold uppercase tracking-[0.2em] text-gold;
+  }
+
+  .link-teal {
+    @apply text-teal transition-colors hover:text-teal-dark;
   }
 }

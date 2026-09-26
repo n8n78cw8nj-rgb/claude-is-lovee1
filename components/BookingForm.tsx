@@ -7,7 +7,7 @@ import { bookingSchema, type BookingInput } from '@/lib/booking-schema';
 import { submitBooking } from '@/lib/booking-actions';
 
 const inputClass =
-  'w-full rounded-xl border border-ink/15 bg-cream-light px-4 py-3 text-ink placeholder:text-ink-soft/60 focus:border-brick focus:outline-none';
+  'w-full rounded-xl border border-ink/15 bg-cream-light px-4 py-3 text-ink placeholder:text-ink-soft/60 focus:border-teal focus:outline-none';
 
 export function BookingForm() {
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
@@ -53,7 +53,7 @@ export function BookingForm() {
             className={inputClass}
             aria-invalid={!!errors.name}
           />
-          {errors.name && <p className="mt-1 text-sm text-brick">{errors.name.message}</p>}
+          {errors.name && <p className="mt-1 text-sm text-red-700">{errors.name.message}</p>}
         </div>
 
         <div className="sm:col-span-2">
@@ -64,7 +64,7 @@ export function BookingForm() {
             className={inputClass}
             aria-invalid={!!errors.phone}
           />
-          {errors.phone && <p className="mt-1 text-sm text-brick">{errors.phone.message}</p>}
+          {errors.phone && <p className="mt-1 text-sm text-red-700">{errors.phone.message}</p>}
         </div>
 
         <div>
@@ -74,7 +74,7 @@ export function BookingForm() {
             className={inputClass}
             aria-invalid={!!errors.date}
           />
-          {errors.date && <p className="mt-1 text-sm text-brick">{errors.date.message}</p>}
+          {errors.date && <p className="mt-1 text-sm text-red-700">{errors.date.message}</p>}
         </div>
 
         <div>
@@ -84,7 +84,7 @@ export function BookingForm() {
             className={inputClass}
             aria-invalid={!!errors.time}
           />
-          {errors.time && <p className="mt-1 text-sm text-brick">{errors.time.message}</p>}
+          {errors.time && <p className="mt-1 text-sm text-red-700">{errors.time.message}</p>}
         </div>
 
         <div className="sm:col-span-2">
@@ -97,7 +97,7 @@ export function BookingForm() {
             className={inputClass}
             aria-invalid={!!errors.guests}
           />
-          {errors.guests && <p className="mt-1 text-sm text-brick">{errors.guests.message}</p>}
+          {errors.guests && <p className="mt-1 text-sm text-red-700">{errors.guests.message}</p>}
         </div>
 
         <div className="sm:col-span-2">
@@ -114,12 +114,12 @@ export function BookingForm() {
         </button>
 
         {status === 'success' && (
-          <p className="text-center text-sm text-brick sm:col-span-2">
+          <p className="text-center text-sm text-forest sm:col-span-2">
             Заявка отправлена! Мы скоро свяжемся с вами.
           </p>
         )}
         {status === 'error' && (
-          <p className="text-center text-sm text-brick sm:col-span-2">
+          <p className="text-center text-sm text-red-700 sm:col-span-2">
             Не получилось отправить заявку. Позвоните нам напрямую — контакты ниже.
           </p>
         )}

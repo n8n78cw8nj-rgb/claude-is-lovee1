@@ -29,7 +29,7 @@ export function Contacts() {
 
           <div>
             <h3 className="eyebrow">Телефон / Заказ</h3>
-            <a href={cafe.phoneHref} className="mt-1 block text-lg hover:text-brick">
+            <a href={cafe.phoneHref} className="mt-1 block text-lg hover:text-teal">
               📞 {cafe.phone}
             </a>
           </div>
@@ -40,7 +40,7 @@ export function Contacts() {
               href={cafe.vkHref}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 block text-lg hover:text-brick"
+              className="mt-1 block text-lg hover:text-teal"
             >
               🌐 {cafe.vkHandle}
             </a>

@@ -20,7 +20,7 @@ export function BusinessLunch() {
           <ul className="space-y-3">
             {lunchIncludes.map((item) => (
               <li key={item} className="flex items-start gap-3 text-cream/90">
-                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-brick" />
+                <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-gold" />
                 {item}
               </li>
             ))}

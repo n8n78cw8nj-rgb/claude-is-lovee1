@@ -11,6 +11,7 @@ export const cafe = {
     { days: 'Понедельник — Пятница', time: '10:00 – 22:00' },
     { days: 'Суббота — Воскресенье', time: '11:00 – 22:00' },
   ],
+  deliveryAreas: ['г. Тутаев', 'п. Фоминское', 'п. Чебаково', 'п. Микляиха'],
 };
 
 export const khinkaliTypes = [
@@ -39,6 +40,15 @@ export const menuItems = [
     image: '/images/khachapuri.webp',
   },
   {
+    title: 'Долма',
+    description: 'Виноградные листья с начинкой и соусом на основе мацони — по семейному рецепту.',
+    image: '/images/dolma.webp',
+  },
+  {
+    title: 'Пельмени и вареники',
+    description: 'Лепим и то, и другое: классические пельмени и вареники с картофелем или грибами.',
+  },
+  {
     title: 'Наваристые супы',
     description: 'От сытных мясных до лёгких овощных.',
   },
@@ -47,6 +57,11 @@ export const menuItems = [
     description: 'Ароматные блюда для полноценного и сытного ужина.',
   },
 ];
+
+export const testimonial = {
+  quote: 'За свежими летними салатами — куда? Правильно, только в «ПРОTESTO». Очень вкусно!',
+  source: 'Гостья кафе, из отзыва во ВКонтакте',
+};
 
 export const lunchIncludes = [
   'Первое горячее блюдо',

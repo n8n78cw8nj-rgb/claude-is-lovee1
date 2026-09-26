@@ -23,6 +23,10 @@ export function Delivery() {
             Доставляем аккуратно и быстро в термосумках: ваши хинкали, хачапури и обеды приедут
             такими же свежими, будто их только что подали к вашему столику.
           </p>
+          <p className="mt-4 text-sm text-ink-soft">
+            <span className="font-semibold text-ink">Зона доставки:</span>{' '}
+            {cafe.deliveryAreas.join(', ')}
+          </p>
           <a href={cafe.phoneHref} className="btn-primary mt-6 inline-flex">
             Оформить доставку онлайн
           </a>

@@ -6,17 +6,25 @@ const config: Config = {
     extend: {
       colors: {
         cream: {
-          DEFAULT: '#EDE3D6',
-          light: '#F5EEE4',
-          dark: '#DDCEBA',
+          DEFAULT: '#F4EEDD',
+          light: '#FAF6EB',
+          dark: '#E4DABF',
         },
         ink: {
-          DEFAULT: '#201C18',
-          soft: '#4A423B',
+          DEFAULT: '#1E1B15',
+          soft: '#544D3F',
         },
-        brick: {
-          DEFAULT: '#A8432F',
-          dark: '#8A3527',
+        forest: {
+          DEFAULT: '#1E3D2E',
+          dark: '#142A20',
+        },
+        gold: {
+          DEFAULT: '#B08A3E',
+          light: '#C9A659',
+        },
+        teal: {
+          DEFAULT: '#1B6B72',
+          dark: '#14555B',
         },
       },
       fontFamily: {
