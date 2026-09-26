@@ -1,3 +1,12 @@
+import type { DishIconKey } from '@/components/icons/DishIcons';
+
+type MenuEntry = {
+  title: string;
+  description: string;
+  image?: string;
+  icon?: DishIconKey;
+};
+
 export const cafe = {
   name: 'ПРОTESTO',
   city: 'Тутаев',
@@ -14,7 +23,7 @@ export const cafe = {
   deliveryAreas: ['г. Тутаев', 'п. Фоминское', 'п. Чебаково', 'п. Микляиха'],
 };
 
-export const khinkaliTypes = [
+export const khinkaliTypes: MenuEntry[] = [
   {
     title: 'Классические',
     description: 'С пряным мясом и ароматным наваристым бульоном внутри.',
@@ -28,11 +37,11 @@ export const khinkaliTypes = [
   {
     title: 'С сыром',
     description: 'Нежные, тягучие и сливочные.',
-    icon: 'khinkali',
+    image: '/images/khinkali-cheese.webp',
   },
-] as const;
+];
 
-export const menuItems = [
+export const menuItems: MenuEntry[] = [
   {
     title: 'Чебуреки',
     description: 'Тончайшее хрустящее тесто, сочное мясо и ни капли лишнего масла.',
@@ -51,19 +60,19 @@ export const menuItems = [
   {
     title: 'Пельмени и вареники',
     description: 'Лепим и то, и другое: классические пельмени и вареники с картофелем или грибами.',
-    icon: 'pelmeni',
+    image: '/images/pelmeni.webp',
   },
   {
-    title: 'Наваристые супы',
-    description: 'От сытных мясных до лёгких овощных.',
-    icon: 'soup',
+    title: 'Бизнес-ланч',
+    description: 'Суп, горячее второе и гарнир — комплексный обед по будням.',
+    image: '/images/business-lunch-plate.webp',
   },
   {
     title: 'Мясо на гриле',
     description: 'Ароматные блюда для полноценного и сытного ужина.',
     icon: 'grill',
   },
-] as const;
+];
 
 export const testimonial = {
   quote: 'За свежими летними салатами — куда? Правильно, только в «ПРОTESTO». Очень вкусно!',

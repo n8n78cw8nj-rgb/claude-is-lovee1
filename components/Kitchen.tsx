@@ -28,12 +28,12 @@ export function Kitchen() {
               key={item.title}
               className="flex flex-col items-center rounded-2xl border-t-[3px] border-t-gold bg-cream-light p-6 text-center"
             >
-              {'image' in item ? (
+              {item.image ? (
                 <div className="relative h-14 w-14 overflow-hidden rounded-full">
                   <Image src={item.image} alt={item.title} fill className="object-cover" />
                 </div>
               ) : (
-                <IconBadge icon={item.icon} />
+                <IconBadge icon={item.icon!} />
               )}
               <h4 className="mt-3 font-display text-xl font-bold">{item.title}</h4>
               <p className="mt-2 text-sm text-ink-soft">{item.description}</p>
@@ -51,12 +51,12 @@ export function Kitchen() {
               key={item.title}
               className="flex items-center gap-5 rounded-2xl border-t-[3px] border-t-gold bg-cream-light p-5"
             >
-              {'image' in item ? (
+              {item.image ? (
                 <div className="relative h-[72px] w-[72px] shrink-0 overflow-hidden rounded-xl">
                   <Image src={item.image} alt={item.title} fill className="object-cover" />
                 </div>
               ) : (
-                <IconBadge icon={item.icon} size={72} />
+                <IconBadge icon={item.icon!} size={72} />
               )}
               <div>
                 <h4 className="font-display text-lg font-bold">{item.title}</h4>
