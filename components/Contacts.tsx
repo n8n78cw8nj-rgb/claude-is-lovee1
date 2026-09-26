@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import { cafe } from '@/lib/content';
 
 export function Contacts() {
@@ -10,7 +11,17 @@ export function Contacts() {
         <h2 className="mt-3 text-3xl font-bold sm:text-4xl">Ждём вас в гости</h2>
       </div>
 
-      <div className="mt-12 grid gap-10 sm:grid-cols-2">
+      <div className="relative mx-auto mt-10 aspect-[16/9] max-w-3xl overflow-hidden rounded-2xl">
+        <Image
+          src="/images/signage.webp"
+          alt="Вывеска и вход в кафе «ПРОTESTO» вечером"
+          fill
+          className="object-cover"
+          sizes="(min-width: 768px) 768px, 100vw"
+        />
+      </div>
+
+      <div className="mt-10 grid gap-10 sm:grid-cols-2">
         <div className="overflow-hidden rounded-2xl border border-ink/10">
           <iframe
             src={mapSrc}
