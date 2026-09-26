@@ -36,12 +36,12 @@ export const menuItems = [
   {
     title: 'Чебуреки',
     description: 'Тончайшее хрустящее тесто, сочное мясо и ни капли лишнего масла.',
-    icon: 'cheburek',
+    image: '/images/cheburek.webp',
   },
   {
     title: 'Хачапури',
     description: 'Пышные, румяные, с большим количеством тягучего сыра прямо из печи.',
-    image: '/images/khachapuri.webp',
+    icon: 'khachapuri',
   },
   {
     title: 'Долма',
@@ -78,7 +78,8 @@ export const lunchIncludes = [
 ];
 
 export const galleryImages = [
-  { src: '/images/khachapuri.webp', alt: 'Хачапури с расплавленным сыром' },
-  { src: '/images/zastolye.webp', alt: 'Закуски и домашние лимонады' },
+  { src: '/images/cheburek.webp', alt: 'Чебурек с хрустящей корочкой' },
   { src: '/images/dolma.webp', alt: 'Долма с соусом и свежими томатами' },
+  { src: '/images/caesar-chicken.webp', alt: 'Салат «Цезарь» с курицей' },
+  { src: '/images/zastolye.webp', alt: 'Комбо-набор: закуски и домашние лимонады' },
 ];

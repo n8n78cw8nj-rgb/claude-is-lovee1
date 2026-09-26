@@ -19,6 +19,16 @@ export function KhinkaliIcon() {
   );
 }
 
+export function KhachapuriIcon() {
+  return (
+    <svg {...common}>
+      <path d="M6 30c2-14 12-20 18-20s16 6 18 20c-6 4-14 6-18 6s-12-2-18-6z" />
+      <path d="M12 26c4-8 8-11 12-11s8 3 12 11" opacity={0.5} />
+      <ellipse cx="24" cy="25" rx="5" ry="4" opacity={0.7} />
+    </svg>
+  );
+}
+
 export function CheburekIcon() {
   return (
     <svg {...common}>
@@ -64,6 +74,7 @@ export function PelmeniIcon() {
 
 export const dishIcons = {
   khinkali: KhinkaliIcon,
+  khachapuri: KhachapuriIcon,
   cheburek: CheburekIcon,
   soup: SoupIcon,
   grill: GrillIcon,
