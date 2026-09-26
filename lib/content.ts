@@ -70,7 +70,7 @@ export const menuItems: MenuEntry[] = [
   {
     title: 'Мясо на гриле',
     description: 'Ароматные блюда для полноценного и сытного ужина.',
-    icon: 'grill',
+    image: '/images/grill-meat.webp',
   },
 ];
 
