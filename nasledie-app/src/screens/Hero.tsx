@@ -77,8 +77,9 @@ function StaticMonument() {
         <ellipse cx="100" cy="92" rx="20" ry="26" fill="none" stroke="url(#gold)" strokeWidth="2" />
         <text x="100" y="140" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="11" fontWeight="700">ИВАНОВ</text>
         <text x="100" y="155" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="8">1923 — 1998</text>
-        <rect x="80" y="185" width="40" height="40" rx="2" fill="#fff" stroke="url(#gold)" strokeWidth="2" />
-        <path d="M86 191h9v9h-9zM105 191h9v9h-9zM86 210h9v9h-9zM100 200h4v4h-4zM106 208h8v4h-8zM100 214h4v5h-4z" fill="#000" />
+        {/* QR ≈ 5 см в правом нижнем углу (ширина стелы 100 ед. ≈ 60 см) */}
+        <rect x="135.5" y="237.5" width="9" height="9" rx="0.5" fill="#fff" stroke="url(#gold)" strokeWidth="0.8" />
+        <path d="M136.8 238.8h2.2v2.2h-2.2zM141 238.8h2.2v2.2h-2.2zM136.8 243h2.2v2.2h-2.2zM140.2 241.6h1v1h-1zM141.6 243.2h1.6v1h-1.6z" fill="#000" />
       </svg>
     </div>
   );

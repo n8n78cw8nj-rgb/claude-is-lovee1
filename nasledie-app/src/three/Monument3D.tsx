@@ -189,14 +189,15 @@ function ProceduralMonument() {
           {gold}
         </mesh>
       </group>
-      {/* QR-табличка */}
-      <group position={[0, 0.5 + 0.52, front]}>
+      {/* QR-табличка: небольшая, в правом нижнем углу лицевой стороны.
+          Масштаб: стела 1.6 ед. ≈ 60 см, т.е. 1 ед. ≈ 37,5 см → табличка 0.13 ед. ≈ 4,9 см */}
+      <group position={[0.8 - 0.06 - 0.065, 0.5 + 0.06 + 0.065, front]}>
         <mesh position={[0, 0, -0.002]}>
-          <boxGeometry args={[0.62, 0.62, 0.012]} />
+          <boxGeometry args={[0.13, 0.13, 0.008]} />
           {gold}
         </mesh>
-        <mesh position={[0, 0, 0.006]}>
-          <planeGeometry args={[0.54, 0.54]} />
+        <mesh position={[0, 0, 0.0025]}>
+          <planeGeometry args={[0.115, 0.115]} />
           <meshStandardMaterial map={qr} roughness={0.5} />
         </mesh>
       </group>
