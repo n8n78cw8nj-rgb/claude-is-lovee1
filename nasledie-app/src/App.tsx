@@ -63,7 +63,7 @@ export default function App() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           onAnimationComplete={onEntered}
         >
-            <ErrorBoundary>
+          <ErrorBoundary>
             {screen.name === 'home' && (
               <>
                 <Hero />
@@ -76,7 +76,7 @@ export default function App() {
             {screen.name === 'editor' && <Editor id={screen.id} />}
             {screen.name === 'viewer' && <Viewer id={screen.id} from={screen.from} />}
             {screen.name === 'qr' && <QRStudio id={screen.id} />}
-          {screen.name === 'settings' && <Settings />}
+            {screen.name === 'settings' && <Settings />}
           </ErrorBoundary>
         </motion.main>
       </AnimatePresence>
