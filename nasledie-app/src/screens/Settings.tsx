@@ -26,6 +26,7 @@ import { notifyError } from '../hooks/useToast';
 import { exportAll } from '../lib/export';
 import { importZip } from '../lib/import';
 import { buildQrUrl, clearAll, collectGarbage, getSettings, saveMemorials, saveSettings } from '../lib/storage';
+import { SLOGAN_TEXT } from '../lib/brand';
 import { formatBytes } from '../lib/utils';
 import { exportWithToast, useDemoSeeder } from './MemorialsList';
 
@@ -252,7 +253,8 @@ export function Settings() {
             <p>
               <span className="font-serif text-lg text-gold-light">Наследие</span> · версия {VERSION}
             </p>
-            <p>Цифровая экосистема сохранения памяти. Работает без сервера и интернета после первой загрузки.</p>
+            <p>{SLOGAN_TEXT}</p>
+            <p>Сервис страниц памяти. Работает без сервера и интернета после первой загрузки.</p>
             <p>Метаданные — LocalStorage, медиа — IndexedDB. QR — уровень коррекции H.</p>
             <p>
               Оживление фото:{' '}

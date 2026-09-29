@@ -1,5 +1,6 @@
 import { forwardRef } from 'react';
 import type { Memorial } from '../types/memorial';
+import { SLOGAN } from '../lib/brand';
 import { lifeYears } from '../lib/utils';
 
 export type PrintTheme = 'light' | 'dark';
@@ -10,6 +11,8 @@ export interface PrintProps {
   theme: PrintTheme;
   header: string;
   siteLabel: string;
+  /** печатать слоган сервиса */
+  slogan: boolean;
 }
 
 export const PRINT_FORMATS = {
@@ -28,7 +31,7 @@ export const palette = (t: PrintTheme) =>
 export const symbolChar = (s: Memorial['symbol']) => (s === 'cross' ? '✝' : s === 'star' ? '★' : '');
 
 /** QR-карточка формата визитки 85,6 × 54 мм */
-export const QRCard = forwardRef<HTMLDivElement, PrintProps>(function QRCard({ memorial: m, qr, theme, header }, ref) {
+export const QRCard = forwardRef<HTMLDivElement, PrintProps>(function QRCard({ memorial: m, qr, theme, header, slogan }, ref) {
   const c = palette(theme);
   return (
     <div
@@ -81,6 +84,13 @@ export const QRCard = forwardRef<HTMLDivElement, PrintProps>(function QRCard({ m
             >
               «{m.epitaph || 'Память вечна'}»
             </div>
+            {slogan && (
+              <div style={{ marginTop: '1mm', fontSize: '1.9mm', lineHeight: 1.3, color: c.gold, letterSpacing: '0.05mm' }}>
+                {SLOGAN[0]}
+                <br />
+                {SLOGAN[1]}
+              </div>
+            )}
           </div>
           <div style={{ alignSelf: 'flex-end', background: '#fff', padding: '0.8mm', borderRadius: '1mm' }}>
             <img src={qr} alt="QR" style={{ width: '25mm', height: '25mm', display: 'block' }} />

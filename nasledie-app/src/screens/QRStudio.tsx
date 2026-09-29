@@ -3,7 +3,7 @@ import { Check, Copy, CreditCard, FileDown, ImageDown, Moon, Plus, Printer, Rect
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import toast from 'react-hot-toast';
 import { Button } from '../components/Button';
-import { Input } from '../components/Input';
+import { Input, Toggle } from '../components/Input';
 import { PRINT_FORMATS, QRCard, type PrintFormat, type PrintTheme } from '../components/QRCard';
 import { QRSticker, QRTablet } from '../components/QRTablet';
 import { useMemorials } from '../hooks/useMemorials';
@@ -50,6 +50,7 @@ export function QRStudio({ id }: { id: string | null }) {
   const [mode, setMode] = useState<'single' | 'sheet'>('single');
   const [header, setHeader] = useState('Наследие · страница памяти');
   const [siteLabel, setSiteLabel] = useState(getSettings().siteLabel);
+  const [slogan, setSlogan] = useState(true);
   const [qr, setQr] = useState<string | null>(null);
   const [busy, setBusy] = useState<'print' | 'pdf' | null>(null);
   const [copied, setCopied] = useState(false);
@@ -98,7 +99,7 @@ export function QRStudio({ id }: { id: string | null }) {
     );
   }
 
-  const props = { memorial: m, qr: qr ?? '', theme, header, siteLabel };
+  const props = { memorial: m, qr: qr ?? '', theme, header, siteLabel, slogan };
   const layout = { w: size.w, h: size.h, mode };
   const fileBase = `${slugify(m.fullName)}-${format}`;
   const grid = sheetGrid(size.w, size.h);
@@ -200,6 +201,8 @@ export function QRStudio({ id }: { id: string | null }) {
               {mode === 'single' ? 'Страница печати = размер изделия (для типографии и термопринтера)' : `Лист A4, ${grid.cols}×${grid.rows} с линиями реза`}
             </div>
           </div>
+
+          <Toggle checked={slogan} onChange={setSlogan} label="Слоган «Память не умирает. Жизнь человека — в одном касании.»" />
 
           {format === 'card' && <Input label="Верхняя строка (храм, логотип)" value={header} onChange={(e) => setHeader(e.target.value)} />}
           {format === 'tablet' && <Input label="Адрес сайта на табличке" value={siteLabel} onChange={(e) => setSiteLabel(e.target.value)} />}

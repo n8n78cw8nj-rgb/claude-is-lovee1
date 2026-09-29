@@ -5,6 +5,7 @@ import { Button } from '../components/Button';
 import { ErrorBoundary, hasWebGL } from '../components/ErrorBoundary';
 import { Modal } from '../components/Modal';
 import { useNav } from '../hooks/useNav';
+import { SLOGAN, SUBTITLE } from '../lib/brand';
 
 const Monument3D = lazy(() => import('../three/Monument3D').then((m) => ({ default: m.Monument3D })));
 
@@ -104,16 +105,12 @@ export function Hero() {
 
       <div className="container-page relative grid items-center gap-6 lg:grid-cols-2">
         <div className="relative z-10 order-2 text-center lg:order-1 lg:text-left">
-          <motion.div {...fade(0.1)} className="mb-5 inline-flex items-center gap-2 rounded-full border border-gold/30 bg-gold/10 px-4 py-1.5 text-sm text-gold-light">
-            <Sparkles className="h-4 w-4" /> Цифровая экосистема сохранения памяти
-          </motion.div>
-          <motion.h1 {...fade(0.2)} className="text-[40px] font-bold leading-[1.08] sm:text-6xl xl:text-[72px]">
-            Память не умирает.
-            <br />
-            <span className="text-gold-gradient">Она переходит в цифру.</span>
+          <motion.h1 {...fade(0.2)} className="leading-[1.08] [text-wrap:balance]">
+            <span className="block text-[32px] font-normal text-white/90 sm:text-5xl xl:text-[56px]">{SLOGAN[0]}</span>
+            <span className="mt-2 block text-[40px] font-bold text-gold sm:text-6xl xl:text-[72px]">{SLOGAN[1]}</span>
           </motion.h1>
           <motion.p {...fade(0.3)} className="mx-auto mt-6 max-w-xl text-lg text-muted lg:mx-0">
-            Страницы памяти с фотографиями, видео, голосом и оживлённым портретом. QR-табличка на памятнике ведёт к истории жизни человека.
+            {SUBTITLE}
           </motion.p>
           <motion.div {...fade(0.4)} className="mt-9 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start">
             <Button variant="gold" size="lg" icon={Plus} onClick={() => go({ name: 'editor', id: null })}>

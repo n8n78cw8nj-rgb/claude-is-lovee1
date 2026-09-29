@@ -5,6 +5,7 @@ import { ErrorBoundary } from './components/ErrorBoundary';
 import { Navbar } from './components/Navbar';
 import { NavContext, type Nav } from './hooks/useNav';
 import { toastOptions } from './hooks/useToast';
+import { SLOGAN_TEXT } from './lib/brand';
 import { Editor } from './screens/Editor';
 import { Hero } from './screens/Hero';
 import { MemorialsList } from './screens/MemorialsList';
@@ -69,7 +70,7 @@ export default function App() {
                 <Hero />
                 <MemorialsList />
                 <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
-                  © {new Date().getFullYear()} <span className="font-serif text-gold-light">Наследие</span> · Память не умирает
+                  © {new Date().getFullYear()} <span className="font-serif text-gold-light">Наследие</span> · {SLOGAN_TEXT}
                 </footer>
               </>
             )}

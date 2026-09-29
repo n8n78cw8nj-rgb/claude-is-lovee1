@@ -224,7 +224,7 @@ function GlbMonument() {
   return <primitive object={obj} />;
 }
 
-/** Проверяем, положил ли пользователь свою модель в public/models/monument.glb */
+/** Проверяем, лежит ли своя модель в public/models/monument.glb */
 function useHasGlb() {
   const [has, setHas] = useState(false);
   useEffect(() => {

@@ -19,7 +19,7 @@ export default defineConfig(({ mode }) => {
             manifest: {
               name: 'Наследие — страницы памяти',
               short_name: 'Наследие',
-              description: 'Цифровая экосистема сохранения памяти',
+              description: 'Память не умирает. Жизнь человека — в одном касании.',
               lang: 'ru',
               theme_color: '#0A0E1A',
               background_color: '#0A0E1A',

@@ -1,9 +1,10 @@
 import { forwardRef } from 'react';
+import { SLOGAN, SLOGAN_TEXT } from '../lib/brand';
 import { lifeYears } from '../lib/utils';
 import { palette, symbolChar, type PrintProps } from './QRCard';
 
 /** QR-табличка для памятника, формат A6 105 × 148 мм */
-export const QRTablet = forwardRef<HTMLDivElement, PrintProps>(function QRTablet({ memorial: m, qr, theme, siteLabel }, ref) {
+export const QRTablet = forwardRef<HTMLDivElement, PrintProps>(function QRTablet({ memorial: m, qr, theme, siteLabel, slogan }, ref) {
   const c = palette(theme);
   return (
     <div
@@ -52,6 +53,13 @@ export const QRTablet = forwardRef<HTMLDivElement, PrintProps>(function QRTablet
           <br />
           историю жизни
         </div>
+        {slogan && (
+          <div style={{ marginTop: '3mm', fontFamily: '"PT Serif", serif', fontStyle: 'italic', fontSize: '3.3mm', lineHeight: 1.35, color: c.gold }}>
+            {SLOGAN[0]}
+            <br />
+            {SLOGAN[1]}
+          </div>
+        )}
         <div style={{ marginTop: 'auto', fontSize: '3.4mm', letterSpacing: '0.4mm', color: c.gold, fontWeight: 600 }}>{siteLabel}</div>
       </div>
     </div>
@@ -59,7 +67,7 @@ export const QRTablet = forwardRef<HTMLDivElement, PrintProps>(function QRTablet
 });
 
 /** Квадратная QR-наклейка 70 × 70 мм */
-export const QRSticker = forwardRef<HTMLDivElement, PrintProps>(function QRSticker({ memorial: m, qr, theme }, ref) {
+export const QRSticker = forwardRef<HTMLDivElement, PrintProps>(function QRSticker({ memorial: m, qr, theme, slogan }, ref) {
   const c = palette(theme);
   return (
     <div
@@ -102,6 +110,9 @@ export const QRSticker = forwardRef<HTMLDivElement, PrintProps>(function QRStick
       <div style={{ fontFamily: '"PT Serif", serif', fontSize: '3mm', color: c.gold, marginTop: '0.8mm' }}>
         {lifeYears(m.birthDate, m.deathDate)}
       </div>
+      {slogan && (
+        <div style={{ fontSize: '1.9mm', color: c.muted, marginTop: '0.8mm', maxWidth: '60mm', lineHeight: 1.25 }}>{SLOGAN_TEXT}</div>
+      )}
     </div>
   );
 });

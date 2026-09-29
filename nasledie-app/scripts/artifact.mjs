@@ -19,7 +19,7 @@ const scripts = [src.slice(scriptStart, scriptEnd).replace(' crossorigin', '')];
 
 const out = [
   '<title>Наследие</title>',
-  '<meta name="description" content="Наследие — цифровая экосистема сохранения памяти">',
+  '<meta name="description" content="Память не умирает. Жизнь человека — в одном касании. QR-код на памятнике открывает короткую историю жизни: кем был, как жил, чего добился">',
   ...fonts,
   '<style>html,body{background:#0A0E1A;color-scheme:dark}</style>',
   ...styles,

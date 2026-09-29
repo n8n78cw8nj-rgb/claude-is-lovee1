@@ -5,7 +5,7 @@ import { initials } from './utils';
 
 /**
  * 10 демонстрационных страниц. Портреты и фото — сгенерированные заглушки
- * (сепия-«снимки»), которые пользователь заменит в редакторе на настоящие.
+ * (сепия-«снимки»), которые вы замените в редакторе на настоящие.
  */
 
 type Seed = Omit<Memorial, 'id' | 'portraitId' | 'galleryIds' | 'videoIds' | 'animatedVideoId' | 'audioIds' | 'qrUrl' | 'createdAt' | 'updatedAt' | 'contacts' | 'symbol'> & {
