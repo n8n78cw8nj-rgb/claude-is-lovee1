@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Toaster } from 'react-hot-toast';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Navbar } from './components/Navbar';
 import { NavContext, type Nav } from './hooks/useNav';
 import { toastOptions } from './hooks/useToast';
@@ -62,19 +63,21 @@ export default function App() {
           transition={{ duration: 0.4, ease: 'easeOut' }}
           onAnimationComplete={onEntered}
         >
-          {screen.name === 'home' && (
-            <>
-              <Hero />
-              <MemorialsList />
-              <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
-                © {new Date().getFullYear()} <span className="font-serif text-gold-light">Наследие</span> · Память не умирает
-              </footer>
-            </>
-          )}
-          {screen.name === 'editor' && <Editor id={screen.id} />}
-          {screen.name === 'viewer' && <Viewer id={screen.id} from={screen.from} />}
-          {screen.name === 'qr' && <QRStudio id={screen.id} />}
+            <ErrorBoundary>
+            {screen.name === 'home' && (
+              <>
+                <Hero />
+                <MemorialsList />
+                <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
+                  © {new Date().getFullYear()} <span className="font-serif text-gold-light">Наследие</span> · Память не умирает
+                </footer>
+              </>
+            )}
+            {screen.name === 'editor' && <Editor id={screen.id} />}
+            {screen.name === 'viewer' && <Viewer id={screen.id} from={screen.from} />}
+            {screen.name === 'qr' && <QRStudio id={screen.id} />}
           {screen.name === 'settings' && <Settings />}
+          </ErrorBoundary>
         </motion.main>
       </AnimatePresence>
       <Toaster position="bottom-center" toastOptions={toastOptions} containerStyle={{ bottom: 90 }} />

@@ -207,7 +207,11 @@ export function getSettings(): AppSettings {
 }
 
 export function saveSettings(s: AppSettings) {
-  localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+  try {
+    localStorage.setItem(LS_SETTINGS, JSON.stringify(s));
+  } catch {
+    // хранилище недоступно (приватный режим) — настройки действуют до перезагрузки
+  }
 }
 
 export function buildQrUrl(id: string, settings = getSettings()): string {

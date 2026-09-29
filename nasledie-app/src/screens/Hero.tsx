@@ -2,6 +2,7 @@ import { motion } from 'framer-motion';
 import { ChevronDown, LayoutGrid, PlayCircle, Plus, QrCode, ScanLine, Sparkles, Upload } from 'lucide-react';
 import { lazy, Suspense, useState } from 'react';
 import { Button } from '../components/Button';
+import { ErrorBoundary, hasWebGL } from '../components/ErrorBoundary';
 import { Modal } from '../components/Modal';
 import { useNav } from '../hooks/useNav';
 
@@ -54,9 +55,39 @@ function HowItWorks({ open, onClose }: { open: boolean; onClose: () => void }) {
   );
 }
 
+/** Плоская стела — если браузер не даёт WebGL */
+function StaticMonument() {
+  return (
+    <div className="flex h-full w-full items-center justify-center">
+      <svg viewBox="0 0 200 300" className="h-[85%] drop-shadow-[0_30px_40px_rgba(0,0,0,0.7)]" aria-hidden="true">
+        <defs>
+          <linearGradient id="stone" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor="#3a3d46" />
+            <stop offset="1" stopColor="#15171c" />
+          </linearGradient>
+          <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#F0D9A8" />
+            <stop offset="1" stopColor="#B8925A" />
+          </linearGradient>
+        </defs>
+        <rect x="20" y="262" width="160" height="26" rx="2" fill="url(#stone)" />
+        <rect x="36" y="248" width="128" height="16" rx="2" fill="url(#stone)" />
+        <path d="M50 250V70a50 50 0 0 1 100 0v180z" fill="url(#stone)" stroke="#4a4e58" />
+        <path d="M100 30v22M92 37h16" stroke="url(#gold)" strokeWidth="3" strokeLinecap="round" />
+        <ellipse cx="100" cy="92" rx="20" ry="26" fill="none" stroke="url(#gold)" strokeWidth="2" />
+        <text x="100" y="140" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="11" fontWeight="700">ИВАНОВ</text>
+        <text x="100" y="155" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="8">1923 — 1998</text>
+        <rect x="80" y="185" width="40" height="40" rx="2" fill="#fff" stroke="url(#gold)" strokeWidth="2" />
+        <path d="M86 191h9v9h-9zM105 191h9v9h-9zM86 210h9v9h-9zM100 200h4v4h-4zM106 208h8v4h-8zM100 214h4v5h-4z" fill="#000" />
+      </svg>
+    </div>
+  );
+}
+
 export function Hero() {
   const { go, goHome } = useNav();
   const [how, setHow] = useState(false);
+  const [webgl] = useState(hasWebGL);
 
   const fade = (delay: number) => ({
     initial: { opacity: 0, y: 24 },
@@ -102,9 +133,15 @@ export function Hero() {
           transition={{ duration: 1.2, ease: 'easeOut' }}
           className="relative order-1 h-[46vh] min-h-[320px] lg:order-2 lg:h-[78vh]"
         >
-          <Suspense fallback={<div className="h-full w-full" />}>
-            <Monument3D className="h-full w-full" />
-          </Suspense>
+          {webgl ? (
+            <ErrorBoundary fallback={<StaticMonument />}>
+              <Suspense fallback={<div className="h-full w-full" />}>
+                <Monument3D className="h-full w-full" />
+              </Suspense>
+            </ErrorBoundary>
+          ) : (
+            <StaticMonument />
+          )}
         </motion.div>
       </div>
 
