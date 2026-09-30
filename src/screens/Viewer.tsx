@@ -1,13 +1,16 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Mail, MapPin, Pencil, Phone, QrCode } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/Button';
 import { Gallery } from '../components/Gallery';
+import { NarrationBar, NarrationButton } from '../components/NarrationPlayer';
 import { Portrait } from '../components/MemorialCard';
 import { Timeline } from '../components/Timeline';
 import { AudioPlayer, VideoPlayer } from '../components/VideoPlayer';
 import { useMemorials } from '../hooks/useMemorials';
+import { narrationSupported, useNarration } from '../hooks/useNarration';
 import { useNav } from '../hooks/useNav';
+import { buildNarration } from '../lib/narration';
 import { qrDataUrl } from '../lib/qr';
 import { formatDate, lifeYears } from '../lib/utils';
 import { exportWithToast } from './MemorialsList';
@@ -40,6 +43,21 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   useEffect(() => {
     if (qrUrl) qrDataUrl(qrUrl, 600).then(setQr);
   }, [qrUrl]);
+
+  // озвучка биографии
+  const chunks = useMemo(() => (m ? buildNarration(m) : []), [m]);
+  const narration = useNarration(chunks);
+  const reading = narration.state !== 'idle' ? chunks[narration.index]?.section : null;
+  const canNarrate = narrationSupported() && chunks.length > 0;
+
+  // держим читаемый абзац в поле зрения
+  useEffect(() => {
+    if (narration.state !== 'playing' || !reading) return;
+    document.querySelector(`[data-narr="${reading}"]`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [reading, narration.state]);
+
+  const hl = (section: string) =>
+    `-mx-3 rounded-xl px-3 py-1 transition ${reading === section ? 'bg-gold/10 ring-1 ring-gold/40' : ''}`;
 
   const back = () => (from === 'editor' ? go({ name: 'editor', id }) : goHome('pages'));
 
@@ -83,10 +101,11 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
             />
           </motion.div>
           <motion.h1
+            data-narr="intro"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="mx-auto mt-8 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl lg:text-7xl"
+            className={`mx-auto mt-8 max-w-4xl text-4xl font-bold leading-tight sm:text-6xl lg:text-7xl ${reading === 'intro' ? 'text-gold-light' : ''} transition-colors`}
           >
             {m.fullName}
           </motion.h1>
@@ -105,6 +124,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
           </motion.div>
           {m.epitaph && (
             <motion.p
+              data-narr="epitaph"
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
@@ -113,6 +133,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
               «{m.epitaph}»
             </motion.p>
           )}
+          {canNarrate && <NarrationButton n={narration} />}
         </div>
       </header>
 
@@ -129,10 +150,15 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
         {m.biography && (
           <Block title="Биография">
             <div className="card space-y-5 p-6 text-lg leading-relaxed text-white/90 sm:p-10 sm:text-xl">
-              {m.biography.split(/\n{2,}/).map((p, i) => (
+              {m.biography
+                .split(/\n{2,}/)
+                .map((p) => p.trim())
+                .filter(Boolean)
+                .map((p, i) => (
                 <p
                   key={i}
-                  className={`whitespace-pre-line ${
+                  data-narr={`bio-${i}`}
+                  className={`whitespace-pre-line ${hl(`bio-${i}`)} ${
                     i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
                   }`}
                 >
@@ -145,7 +171,9 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
 
         {m.timeline.length > 0 && (
           <Block title="Хронология">
-            <Timeline items={m.timeline} />
+            <div data-narr="timeline" className={hl('timeline')}>
+              <Timeline items={m.timeline} />
+            </div>
           </Block>
         )}
 
@@ -240,6 +268,8 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
       <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
         Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span>
       </footer>
+
+      <NarrationBar n={narration} />
     </div>
   );
 }

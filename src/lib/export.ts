@@ -2,6 +2,7 @@ import JSZip from 'jszip';
 import type { MediaRecord, Memorial } from '../types/memorial';
 import { qrPngBlob } from './qr';
 import { getMedia, getMemorials, mediaIdsOf } from './storage';
+import { buildNarration } from './narration';
 import { downloadBlob, escapeHtml, extFromMime, formatDate, lifeYears, slugify } from './utils';
 
 export const EXPORT_FORMAT = 'nasledie-export';
@@ -188,6 +189,7 @@ blockquote{margin:0 0 20px;padding-left:18px;border-left:3px solid #B8925A}block
 cite{color:#9CA3AF;font-style:normal;font-size:15px}a{color:#D4B07A}
 .qr{text-align:center}.qr img{width:180px;background:#fff;padding:10px;border-radius:12px}
 footer{text-align:center;color:#9CA3AF;font-size:14px;margin-top:48px}
+#listen{margin-top:28px;display:inline-flex;align-items:center;gap:10px;padding:12px 22px;border-radius:999px;border:1px solid #B8925A;background:rgba(184,146,90,.12);color:#D4B07A;font:600 16px Inter,sans-serif;cursor:pointer}#listen[hidden]{display:none}
 </style></head><body><main>
 <header class="hero">
 ${m.portraitId && src(m.portraitId) ? `<img class="portrait" src="${src(m.portraitId)}" alt="${e(m.fullName)}">` : ''}
@@ -196,9 +198,34 @@ ${m.portraitId && src(m.portraitId) ? `<img class="portrait" src="${src(m.portra
 ${dates ? `<div class="muted">${e(dates)}</div>` : ''}
 ${places ? `<div class="muted">${e(places)}</div>` : ''}
 ${m.epitaph ? `<p class="epitaph">«${e(m.epitaph)}»</p>` : ''}
+<button id="listen" type="button" hidden>▶ Послушать историю жизни</button>
 </header>
 ${sections.join('\n')}
 <section class="qr"><h2>QR-код страницы</h2><img src="qr.png" alt="QR"><p class="muted">${e(m.qrUrl)}</p></section>
 <footer>Создано сервисом «Наследие»</footer>
-</main></body></html>`;
+</main>
+<script>
+// Озвучка биографии встроенным синтезатором речи браузера
+(function(){
+  var parts = ${JSON.stringify(buildNarration(m).map((c) => c.text)).replace(/</g, '\\u003c')};
+  var btn = document.getElementById('listen');
+  if (!('speechSynthesis' in window) || !parts.length) return;
+  btn.hidden = false;
+  var i = 0, playing = false, token = 0;
+  function voice(){ var v = speechSynthesis.getVoices().filter(function(x){return /^ru/i.test(x.lang)}); return v[0]; }
+  function say(my){
+    if (my !== token) return;
+    if (i >= parts.length){ i = 0; playing = false; btn.textContent = '▶ Послушать историю жизни'; return; }
+    var u = new SpeechSynthesisUtterance(parts[i]); u.lang = 'ru-RU'; var v = voice(); if (v) u.voice = v;
+    u.onend = function(){ i++; say(my); };
+    speechSynthesis.speak(u);
+  }
+  btn.onclick = function(){
+    token++; speechSynthesis.cancel();
+    if (playing){ playing = false; btn.textContent = '▶ Продолжить'; return; }
+    playing = true; btn.textContent = '❚❚ Пауза'; say(token);
+  };
+})();
+</script>
+</body></html>`;
 }
