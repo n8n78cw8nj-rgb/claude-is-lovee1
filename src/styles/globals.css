@@ -1,0 +1,101 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    color-scheme: dark;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body {
+    @apply bg-bg font-sans text-white antialiased;
+    background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(184, 146, 90, 0.08), transparent 70%),
+      linear-gradient(180deg, #0a0e1a 0%, #0f1322 60%, #0a0e1a 100%);
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+  h1, h2 {
+    @apply font-serif;
+  }
+  ::selection {
+    background: rgba(184, 146, 90, 0.45);
+  }
+  input[type='date']::-webkit-calendar-picker-indicator {
+    filter: invert(0.75) sepia(1) saturate(3) hue-rotate(5deg);
+    cursor: pointer;
+  }
+  :focus-visible {
+    outline: 2px solid #d4b07a;
+    outline-offset: 2px;
+  }
+}
+
+@layer components {
+  .container-page {
+    @apply mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8;
+  }
+  .section {
+    @apply py-10 md:py-20;
+  }
+  .glass {
+    @apply border border-line/70 bg-card/70 backdrop-blur-xl;
+  }
+  .card {
+    @apply rounded-3xl border border-line/70 bg-card shadow-deep;
+  }
+  .text-gold-gradient {
+    background: linear-gradient(135deg, #f0d9a8 0%, #d4b07a 40%, #b8925a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .field {
+    @apply w-full rounded-xl border border-line bg-field px-4 py-3 text-base text-white placeholder:text-muted/60
+      transition focus:border-gold focus:outline-none focus:ring-2 focus:ring-gold/30;
+  }
+  .label {
+    @apply mb-1.5 block text-sm font-medium text-muted;
+  }
+}
+
+/* скроллбар */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #3a4050 transparent;
+}
+
+/* ----------------------------- печать ----------------------------- */
+
+#print-root {
+  display: none;
+}
+
+@media print {
+  html,
+  body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    min-height: 0 !important;
+  }
+  body.printing #root,
+  body.printing > div:not(#print-root) {
+    display: none !important;
+  }
+  body.printing #print-root {
+    display: block !important;
+  }
+  #print-root .print-page {
+    page-break-after: always;
+    break-after: page;
+    overflow: hidden;
+  }
+  #print-root .print-page:last-child {
+    page-break-after: auto;
+    break-after: auto;
+  }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

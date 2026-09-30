@@ -1,42 +1,28 @@
 import type { Config } from 'tailwindcss';
 
-const config: Config = {
-  content: ['./app/**/*.{ts,tsx}', './components/**/*.{ts,tsx}'],
+export default {
+  content: ['./index.html', './src/**/*.{ts,tsx}'],
   theme: {
     extend: {
       colors: {
-        cream: {
-          DEFAULT: '#F4EEDD',
-          light: '#FAF6EB',
-          dark: '#E4DABF',
-        },
-        ink: {
-          DEFAULT: '#1E1B15',
-          soft: '#544D3F',
-        },
-        forest: {
-          DEFAULT: '#1E3D2E',
-          dark: '#142A20',
-        },
-        gold: {
-          DEFAULT: '#B08A3E',
-          light: '#C9A659',
-        },
-        teal: {
-          DEFAULT: '#1B6B72',
-          dark: '#14555B',
-        },
+        bg: '#0A0E1A',
+        card: '#1A1F2E',
+        field: '#2A3040',
+        line: '#3A4050',
+        gold: { DEFAULT: '#B8925A', light: '#D4B07A' },
+        muted: '#9CA3AF',
+        danger: '#E05252',
+        success: '#4CAF50',
       },
       fontFamily: {
-        display: ['var(--font-display)', 'serif'],
-        body: ['var(--font-body)', 'sans-serif'],
+        serif: ['"PT Serif"', 'Georgia', 'serif'],
+        sans: ['Inter', 'system-ui', 'sans-serif'],
       },
-      maxWidth: {
-        content: '1180px',
+      boxShadow: {
+        deep: '0 20px 60px -15px rgba(0,0,0,0.7)',
+        gold: '0 10px 40px -10px rgba(184,146,90,0.55)',
       },
     },
   },
   plugins: [],
-};
-
-export default config;
+} satisfies Config;
