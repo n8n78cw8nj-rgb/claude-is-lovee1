@@ -25,6 +25,7 @@ import { useStats } from '../hooks/useStorage';
 import { notifyError } from '../hooks/useToast';
 import { exportAll } from '../lib/export';
 import { importZip } from '../lib/import';
+import { isBuiltinId } from '../lib/builtin';
 import { buildQrUrl, clearAll, collectGarbage, getSettings, saveMemorials, saveSettings } from '../lib/storage';
 import { SLOGAN_TEXT } from '../lib/brand';
 import { formatBytes } from '../lib/utils';
@@ -106,7 +107,8 @@ export function Settings() {
 
   const regenerateUrls = () => {
     saveSettings(settings);
-    saveMemorials(memorials.map((m) => ({ ...m, qrUrl: buildQrUrl(m.id, settings) })));
+    // QR встроенной страницы всегда ведёт на этот сайт — её данные есть у любого посетителя
+    saveMemorials(memorials.filter((m) => !isBuiltinId(m.id)).map((m) => ({ ...m, qrUrl: buildQrUrl(m.id, settings) })));
     toast.success('Ссылки QR обновлены для всех страниц');
   };
 

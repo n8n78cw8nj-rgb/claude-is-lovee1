@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
+import toast from 'react-hot-toast';
 import { russianVoices, type NarrationChunk } from '../lib/narration';
 
 export type NarrationState = 'idle' | 'playing' | 'paused';
@@ -102,5 +103,114 @@ export function useNarration(chunks: NarrationChunk[]) {
     // зависим только от настроек: перезапуск при смене state не нужен
   }, [rate, voiceName]);
 
-  return { state, index, total: chunks.length, rate, setRate, voices, voiceName, setVoiceName, play, pause, stop, skip };
+  return {
+    state,
+    index,
+    progress: chunks.length ? (index + (state === 'idle' ? 0 : 1)) / chunks.length : 0,
+    position: `${index + 1} / ${chunks.length}`,
+    rate,
+    setRate,
+    voices,
+    voiceName,
+    setVoiceName,
+    play,
+    pause,
+    stop,
+    skip,
+  };
+}
+
+export type Narration = Pick<
+  ReturnType<typeof useNarration>,
+  'state' | 'progress' | 'position' | 'rate' | 'setRate' | 'voices' | 'voiceName' | 'setVoiceName' | 'play' | 'pause' | 'stop' | 'skip'
+>;
+
+/** Перемотка готовой озвучки кнопками «назад/вперёд», секунд */
+const SKIP_SECONDS = 15;
+
+const clock = (sec: number) => {
+  const s = Math.max(0, Math.floor(Number.isFinite(sec) ? sec : 0));
+  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+};
+
+/**
+ * Готовая озвучка (MP3 из Yandex SpeechKit и т. п.) с тем же управлением, что и синтез речи.
+ * Файл начинает загружаться только по первому нажатию «Послушать».
+ */
+export function useAudioNarration(src: string | null): Narration {
+  const audio = useRef<HTMLAudioElement | null>(null);
+  const [state, setState] = useState<NarrationState>('idle');
+  const [time, setTime] = useState({ current: 0, duration: 0 });
+  const [rate, setRate] = useState(1);
+
+  const element = useCallback(() => {
+    if (!src) return null;
+    if (!audio.current) {
+      const a = new Audio(src);
+      a.preload = 'metadata';
+      a.playbackRate = rate;
+      const sync = () => setTime({ current: a.currentTime, duration: Number.isFinite(a.duration) ? a.duration : 0 });
+      a.addEventListener('timeupdate', sync);
+      a.addEventListener('loadedmetadata', sync);
+      a.addEventListener('play', () => setState('playing'));
+      // pause приходит и после stop() (событие асинхронное) — там позиция уже сброшена в 0
+      a.addEventListener('pause', () => setState(a.ended || a.currentTime === 0 ? 'idle' : 'paused'));
+      a.addEventListener('ended', () => {
+        a.currentTime = 0;
+        setState('idle');
+      });
+      a.addEventListener('error', () => {
+        setState('idle');
+        toast.error('Не удалось воспроизвести озвучку');
+      });
+      audio.current = a;
+    }
+    return audio.current;
+  }, [src, rate]);
+
+  useEffect(
+    () => () => {
+      audio.current?.pause();
+      audio.current = null;
+    },
+    [src],
+  );
+
+  useEffect(() => {
+    if (audio.current) audio.current.playbackRate = rate;
+  }, [rate]);
+
+  const play = useCallback(() => {
+    element()?.play().catch(() => setState('idle'));
+  }, [element]);
+
+  const pause = useCallback(() => audio.current?.pause(), []);
+
+  const stop = useCallback(() => {
+    const a = audio.current;
+    if (!a) return;
+    a.pause();
+    a.currentTime = 0;
+    setState('idle');
+  }, []);
+
+  const skip = useCallback((delta: number) => {
+    const a = audio.current;
+    if (a) a.currentTime = Math.max(0, Math.min(a.duration || 0, a.currentTime + delta * SKIP_SECONDS));
+  }, []);
+
+  return {
+    state,
+    progress: time.duration ? time.current / time.duration : 0,
+    position: `${clock(time.current)} / ${clock(time.duration)}`,
+    rate,
+    setRate,
+    voices: [],
+    voiceName: '',
+    setVoiceName: () => {},
+    play,
+    pause,
+    stop,
+    skip,
+  };
 }

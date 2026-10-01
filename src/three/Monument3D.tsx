@@ -3,6 +3,7 @@ import { Canvas, useFrame } from '@react-three/fiber';
 import QRCode from 'qrcode';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
+import { MONUMENT } from '../lib/builtin';
 import { Particles } from './Particles';
 
 /** 0.01 рад за кадр при 60 fps — медленное постоянное вращение */
@@ -74,12 +75,17 @@ function engravingTexture() {
 
   ctx.fillStyle = gold;
   ctx.textAlign = 'center';
-  ctx.font = '700 58px "PT Serif", Georgia, serif';
-  ctx.fillText('ИВАНОВ', W / 2, 510);
-  ctx.font = '400 44px "PT Serif", Georgia, serif';
-  ctx.fillText('ИВАН ИВАНОВИЧ', W / 2, 570);
-  ctx.font = '400 40px "PT Serif", Georgia, serif';
-  ctx.fillText('1923 — 1998', W / 2, 635);
+  // длинное имя уменьшаем, чтобы строка не уходила за край стелы
+  const line = (text: string, weight: number, size: number, y: number) => {
+    let px = size;
+    do {
+      ctx.font = `${weight} ${px}px "PT Serif", Georgia, serif`;
+    } while (ctx.measureText(text).width > W - 100 && --px > 24);
+    ctx.fillText(text, W / 2, y);
+  };
+  line(MONUMENT.surname, 700, 58, 510);
+  line(MONUMENT.given, 400, 44, 570);
+  line(MONUMENT.years, 400, 40, 635);
   ctx.fillRect(W / 2 - 80, 665, 160, 3);
 
   const t = new THREE.CanvasTexture(c);
@@ -113,6 +119,17 @@ function qrTexture(text: string) {
 
 /* ------------------------ модель памятника ------------------------ */
 
+function starShape() {
+  const shape = new THREE.Shape();
+  for (let i = 0; i < 10; i++) {
+    const a = Math.PI / 2 + (i * Math.PI) / 5;
+    const r = i % 2 ? 0.05 : 0.12;
+    if (i) shape.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+    else shape.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+  }
+  return shape;
+}
+
 function steleGeometry() {
   const w = 0.8;
   const shape = new THREE.Shape();
@@ -142,7 +159,8 @@ function ProceduralMonument() {
   }, []);
   const engraving = useMemo(engravingTexture, [fontsReady]);
   const stele = useMemo(steleGeometry, []);
-  const qr = useMemo(() => qrTexture('https://наследие.рф'), []);
+  const qr = useMemo(() => qrTexture(MONUMENT.link), []);
+  const star = useMemo(starShape, []);
   const front = 0.13 + 0.03 + 0.004;
 
   const stone = (
@@ -178,17 +196,25 @@ function ProceduralMonument() {
           roughness={0.35}
         />
       </mesh>
-      {/* крест над медальоном */}
-      <group position={[0, 0.5 + 2.58, front]}>
-        <mesh>
-          <boxGeometry args={[0.035, 0.22, 0.01]} />
+      {/* символ над медальоном — как выбран на странице: крест, звезда или ничего */}
+      {MONUMENT.symbol === 'cross' && (
+        <group position={[0, 0.5 + 2.58, front]}>
+          <mesh>
+            <boxGeometry args={[0.035, 0.22, 0.01]} />
+            {gold}
+          </mesh>
+          <mesh position={[0, 0.04, 0]}>
+            <boxGeometry args={[0.13, 0.035, 0.01]} />
+            {gold}
+          </mesh>
+        </group>
+      )}
+      {MONUMENT.symbol === 'star' && (
+        <mesh position={[0, 0.5 + 2.58, front - 0.005]}>
+          <extrudeGeometry args={[star, { depth: 0.01, bevelEnabled: false }]} />
           {gold}
         </mesh>
-        <mesh position={[0, 0.04, 0]}>
-          <boxGeometry args={[0.13, 0.035, 0.01]} />
-          {gold}
-        </mesh>
-      </group>
+      )}
       {/* QR-табличка: небольшая, в верхнем левом углу лицевой стороны — у начала скругления,
           чтобы целиком оставаться на камне. Масштаб: стела 1.6 ед. ≈ 60 см, 1 ед. ≈ 37,5 см
           → табличка 0.13 ед. ≈ 4,9 см, отступ от левого края ≈ 3,4 см */}

@@ -6,6 +6,7 @@ import { ErrorBoundary, hasWebGL } from '../components/ErrorBoundary';
 import { Modal } from '../components/Modal';
 import { useNav } from '../hooks/useNav';
 import { SLOGAN, SUBTITLE } from '../lib/brand';
+import { MONUMENT } from '../lib/builtin';
 
 const Monument3D = lazy(() => import('../three/Monument3D').then((m) => ({ default: m.Monument3D })));
 
@@ -74,10 +75,11 @@ function StaticMonument() {
         <rect x="20" y="262" width="160" height="26" rx="2" fill="url(#stone)" />
         <rect x="36" y="248" width="128" height="16" rx="2" fill="url(#stone)" />
         <path d="M50 250V70a50 50 0 0 1 100 0v180z" fill="url(#stone)" stroke="#4a4e58" />
-        <path d="M100 30v22M92 37h16" stroke="url(#gold)" strokeWidth="3" strokeLinecap="round" />
+        {MONUMENT.symbol === 'cross' && <path d="M100 30v22M92 37h16" stroke="url(#gold)" strokeWidth="3" strokeLinecap="round" />}
+        {MONUMENT.symbol === 'star' && <path d="M100 30l2.6 8h8.4l-6.8 5 2.6 8-6.8-5-6.8 5 2.6-8-6.8-5h8.4z" fill="url(#gold)" />}
         <ellipse cx="100" cy="92" rx="20" ry="26" fill="none" stroke="url(#gold)" strokeWidth="2" />
-        <text x="100" y="140" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="11" fontWeight="700">ИВАНОВ</text>
-        <text x="100" y="155" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="8">1923 — 1998</text>
+        <text x="100" y="140" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="11" fontWeight="700">{MONUMENT.surname}</text>
+        <text x="100" y="155" textAnchor="middle" fill="url(#gold)" fontFamily="PT Serif, Georgia, serif" fontSize="8">{MONUMENT.years}</text>
         {/* QR ≈ 5 см в верхнем левом углу (ширина стелы 100 ед. ≈ 60 см) */}
         <rect x="56" y="66" width="9" height="9" rx="0.5" fill="#fff" stroke="url(#gold)" strokeWidth="0.8" />
         <path d="M57.3 67.3h2.2v2.2h-2.2zM61.5 67.3h2.2v2.2h-2.2zM57.3 71.5h2.2v2.2h-2.2zM60.7 70.1h1v1h-1zM62.1 71.7h1.6v1h-1.6z" fill="#000" />

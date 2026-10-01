@@ -32,6 +32,8 @@ export interface Memorial {
   videoIds: string[];
   animatedVideoId: string | null;
   audioIds: string[];
+  /** Озвучка биографии (MP3): если есть, «Послушать историю жизни» играет её вместо синтеза речи */
+  narrationId?: string | null;
   words: Word[];
   contacts: Contacts;
   /** Символ на QR-карточке: крест, звезда или без символа */
@@ -39,11 +41,13 @@ export interface Memorial {
   qrUrl: string;
   createdAt: string;
   updatedAt: string;
+  /** Для локальной правки встроенной страницы: версия сайта, к которой правка относится */
+  builtinRev?: string;
 }
 
 export type MediaKind = 'image' | 'video' | 'audio';
 
-/** Запись в IndexedDB: исходный файл + миниатюра */
+/** Запись в IndexedDB: исходный файл + миниатюра. id вида «/images/…» — файл сайта из public/ */
 export interface MediaRecord {
   id: string;
   kind: MediaKind;

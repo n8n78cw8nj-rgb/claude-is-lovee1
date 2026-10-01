@@ -34,11 +34,13 @@ export function useMemorials() {
       qrUrl: buildQrUrl(newId),
       portraitId: await cloneMedia(src.portraitId),
       animatedVideoId: await cloneMedia(src.animatedVideoId),
+      narrationId: await cloneMedia(src.narrationId ?? null),
       galleryIds: await cloneList(src.galleryIds),
       videoIds: await cloneList(src.videoIds),
       audioIds: await cloneList(src.audioIds),
       createdAt: now,
       updatedAt: now,
+      builtinRev: undefined,
     };
     saveMemorial(copy);
     return copy;

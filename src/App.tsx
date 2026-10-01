@@ -18,8 +18,16 @@ function screenKey(s: Screen): string {
   return 'id' in s ? `${s.name}:${s.id ?? 'new'}` : s.name;
 }
 
+/** #/m/<id> — прямая ссылка на страницу памяти (её кодирует QR) */
+const PAGE_HASH = /^#\/m\/([^/?#]+)/;
+
+function screenFromHash(): Screen {
+  const m = PAGE_HASH.exec(location.hash);
+  return m ? { name: 'viewer', id: decodeURIComponent(m[1]) } : { name: 'home' };
+}
+
 export default function App() {
-  const [screen, setScreen] = useState<Screen>({ name: 'home' });
+  const [screen, setScreen] = useState<Screen>(screenFromHash);
   const pendingAnchor = useRef<'top' | 'pages' | null>(null);
 
   const go = useCallback((s: Screen) => {
@@ -51,6 +59,31 @@ export default function App() {
   useEffect(() => {
     if (pendingAnchor.current) window.scrollTo({ top: 0 });
   }, [screen]);
+
+  // в адресной строке — ссылка на открытую страницу памяти, её можно скопировать и отправить
+  useEffect(() => {
+    const hash = screen.name === 'viewer' ? `#/m/${encodeURIComponent(screen.id)}` : '';
+    if (location.hash === hash || (!hash && !PAGE_HASH.test(location.hash))) return;
+    try {
+      history.replaceState(history.state, '', hash || location.pathname + location.search);
+    } catch {
+      // песочница (iframe предпросмотра) может запрещать менять адрес
+    }
+  }, [screen]);
+
+  // ссылку вставили в адресную строку уже открытого сайта
+  useEffect(() => {
+    const onHash = () => {
+      const next = screenFromHash();
+      setScreen((cur) => {
+        if (next.name === 'viewer') return screenKey(cur) === screenKey(next) ? cur : next;
+        return cur.name === 'viewer' ? next : cur;
+      });
+      pendingAnchor.current = 'top';
+    };
+    window.addEventListener('hashchange', onHash);
+    return () => window.removeEventListener('hashchange', onHash);
+  }, []);
 
   return (
     <NavContext.Provider value={nav}>

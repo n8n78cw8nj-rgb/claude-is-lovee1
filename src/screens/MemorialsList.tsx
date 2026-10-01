@@ -8,6 +8,7 @@ import { ConfirmModal } from '../components/Modal';
 import { useMemorials } from '../hooks/useMemorials';
 import { useNav } from '../hooks/useNav';
 import { notifyError } from '../hooks/useToast';
+import { isBuiltinId } from '../lib/builtin';
 import { seedDemo } from '../lib/demo';
 import { exportMemorial } from '../lib/export';
 import { plural } from '../lib/utils';
@@ -69,6 +70,7 @@ export function MemorialsList() {
   }, [memorials, query, sort]);
 
   const target = memorials.find((m) => m.id === toDelete);
+  const builtinTarget = !!target && isBuiltinId(target.id);
 
   return (
     <section id="pages" className="section scroll-mt-16">
@@ -148,7 +150,12 @@ export function MemorialsList() {
                   onView={() => go({ name: 'viewer', id: m.id, from: 'home' })}
                   onEdit={() => go({ name: 'editor', id: m.id })}
                   onQr={() => go({ name: 'qr', id: m.id })}
-                  onDelete={() => setToDelete(m.id)}
+                  onDelete={() =>
+                    // нетронутую встроенную страницу удалять нечего — она хранится в проекте, а не в браузере
+                    isBuiltinId(m.id) && !m.builtinRev
+                      ? toast('Это страница сайта: её текст и фото хранятся в файлах сайта, а не в браузере, — удалить её отсюда нельзя.', { icon: 'ℹ️' })
+                      : setToDelete(m.id)
+                  }
                   onDuplicate={async () => {
                     try {
                       const c = await duplicate(m.id);
@@ -169,19 +176,27 @@ export function MemorialsList() {
         open={!!toDelete}
         onClose={() => setToDelete(null)}
         loading={deleting}
-        title="Удалить страницу?"
+        title={builtinTarget ? 'Отменить правки?' : 'Удалить страницу?'}
+        confirmLabel={builtinTarget ? 'Отменить правки' : undefined}
         text={
-          <>
-            Страница <b className="text-white">«{target?.fullName}»</b> и все её фото, видео и аудио будут удалены из
-            браузера без возможности восстановления. Сначала можно сделать экспорт в ZIP.
-          </>
+          builtinTarget ? (
+            <>
+              Страница <b className="text-white">«{target.fullName}»</b> — часть сайта, она останется в списке и по QR-коду.
+              Правки, сделанные в этом браузере, будут отменены — вернётся версия с сайта.
+            </>
+          ) : (
+            <>
+              Страница <b className="text-white">«{target?.fullName}»</b> и все её фото, видео и аудио будут удалены из
+              браузера без возможности восстановления. Сначала можно сделать экспорт в ZIP.
+            </>
+          )
         }
         onConfirm={async () => {
           if (!toDelete) return;
           setDeleting(true);
           try {
             await remove(toDelete);
-            toast.success('Страница удалена');
+            toast.success(builtinTarget ? 'Правки отменены' : 'Страница удалена');
           } catch (e) {
             notifyError(e, 'Ошибка удаления');
           } finally {

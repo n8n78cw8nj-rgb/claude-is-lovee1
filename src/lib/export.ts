@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import type { MediaRecord, Memorial } from '../types/memorial';
 import { qrPngBlob } from './qr';
-import { getMedia, getMemorials, mediaIdsOf } from './storage';
+import { getStoredMemorials, isStaticMedia, mediaIdsOf, readMedia } from './storage';
 import { buildNarration } from './narration';
 import { downloadBlob, escapeHtml, extFromMime, formatDate, lifeYears, slugify } from './utils';
 
@@ -36,9 +36,11 @@ async function addMedia(zip: JSZip, ids: string[], onProgress?: Progress): Promi
   let i = 0;
   for (const id of ids) {
     i++;
-    const rec = await getMedia(id);
+    const rec = await readMedia(id);
     if (!rec) continue;
-    const file = `media/${id}.${extFromMime(rec.mime, rec.name)}`;
+    // файл сайта: «/images/gallery/01.jpg» → media/images_gallery_01.jpg
+    const key = isStaticMedia(id) ? id.replace(/^\/+/, '').replace(/\.[^./]+$/, '').replace(/[^\w-]+/g, '_') : id;
+    const file = `media/${key}.${extFromMime(rec.mime, rec.name)}`;
     // медиа уже сжаты — упаковываем без повторного сжатия
     zip.file(file, rec.blob, { compression: 'STORE', binary: true });
     let thumb: string | undefined;
@@ -63,9 +65,9 @@ function stamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Резервная копия всех страниц и медиа */
+/** Резервная копия всех страниц и медиа (встроенные страницы — часть сайта, в копию не входят, если их не правили) */
 export async function exportAll(onProgress?: Progress): Promise<void> {
-  const memorials = getMemorials();
+  const memorials = getStoredMemorials();
   const zip = new JSZip();
   const ids = [...new Set(memorials.flatMap(mediaIdsOf))];
   const media = await addMedia(zip, ids, onProgress);
@@ -197,7 +199,7 @@ ${m.portraitId && src(m.portraitId) ? `<img class="portrait" src="${src(m.portra
 <div class="years">${e(lifeYears(m.birthDate, m.deathDate))}</div>
 ${dates ? `<div class="muted">${e(dates)}</div>` : ''}
 ${places ? `<div class="muted">${e(places)}</div>` : ''}
-${m.epitaph ? `<p class="epitaph">«${e(m.epitaph)}»</p>` : ''}
+${m.epitaph ? `<p class="epitaph">«${e(m.epitaph).replace(/\n/g, '<br>')}»</p>` : ''}
 <button id="listen" type="button" hidden>▶ Послушать историю жизни</button>
 </header>
 ${sections.join('\n')}
@@ -205,10 +207,20 @@ ${sections.join('\n')}
 <footer>Создано сервисом «Наследие»</footer>
 </main>
 <script>
-// Озвучка биографии встроенным синтезатором речи браузера
+// Озвучка биографии: готовый MP3, если он есть, иначе — встроенный синтезатор речи браузера
 (function(){
   var parts = ${JSON.stringify(buildNarration(m).map((c) => c.text)).replace(/</g, '\\u003c')};
+  var file = ${JSON.stringify(src(m.narrationId ?? null) || null)};
   var btn = document.getElementById('listen');
+  if (file){
+    var audio = new Audio(file); btn.hidden = false;
+    audio.onended = function(){ btn.textContent = '▶ Послушать историю жизни'; };
+    btn.onclick = function(){
+      if (audio.paused){ audio.play(); btn.textContent = '❚❚ Пауза'; }
+      else { audio.pause(); btn.textContent = '▶ Продолжить'; }
+    };
+    return;
+  }
   if (!('speechSynthesis' in window) || !parts.length) return;
   btn.hidden = false;
   var i = 0, playing = false, token = 0;

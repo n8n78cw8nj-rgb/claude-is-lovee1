@@ -1,4 +1,5 @@
 import { motion } from 'framer-motion';
+import { glueDashes } from '../lib/utils';
 import type { TimelineEvent } from '../types/memorial';
 
 export function Timeline({ items }: { items: TimelineEvent[] }) {
@@ -19,8 +20,8 @@ export function Timeline({ items }: { items: TimelineEvent[] }) {
           <div className="font-serif text-2xl font-bold text-gold-light sm:absolute sm:-left-[7.5rem] sm:top-0 sm:w-24 sm:text-right">
             {t.year}
           </div>
-          <h4 className="text-lg font-semibold sm:text-xl">{t.title}</h4>
-          {t.text && <p className="mt-1 text-muted">{t.text}</p>}
+          <h4 className="text-lg font-semibold sm:text-xl">{glueDashes(t.title)}</h4>
+          {t.text && <p className="mt-1 text-muted">{glueDashes(t.text)}</p>}
         </motion.li>
       ))}
     </ol>

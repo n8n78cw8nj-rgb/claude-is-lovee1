@@ -8,11 +8,13 @@ import { Portrait } from '../components/MemorialCard';
 import { Timeline } from '../components/Timeline';
 import { AudioPlayer, VideoPlayer } from '../components/VideoPlayer';
 import { useMemorials } from '../hooks/useMemorials';
-import { narrationSupported, useNarration } from '../hooks/useNarration';
+import { narrationSupported, useAudioNarration, useNarration, type Narration } from '../hooks/useNarration';
 import { useNav } from '../hooks/useNav';
+import { useMediaUrl } from '../hooks/useStorage';
+import { SLOGAN_TEXT } from '../lib/brand';
 import { buildNarration } from '../lib/narration';
 import { qrDataUrl } from '../lib/qr';
-import { formatDate, lifeYears } from '../lib/utils';
+import { formatDate, glueDashes, lifeYears } from '../lib/utils';
 import { exportWithToast } from './MemorialsList';
 
 function Block({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
@@ -44,11 +46,14 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
     if (qrUrl) qrDataUrl(qrUrl, 600).then(setQr);
   }, [qrUrl]);
 
-  // озвучка биографии
+  // озвучка биографии: готовый MP3, если он есть, иначе — синтез речи браузера
   const chunks = useMemo(() => (m ? buildNarration(m) : []), [m]);
-  const narration = useNarration(chunks);
-  const reading = narration.state !== 'idle' ? chunks[narration.index]?.section : null;
-  const canNarrate = narrationSupported() && chunks.length > 0;
+  const speech = useNarration(chunks);
+  const recordingUrl = useMediaUrl(m?.narrationId);
+  const recording = useAudioNarration(recordingUrl);
+  const narration: Narration = recordingUrl ? recording : speech;
+  const reading = !recordingUrl && speech.state !== 'idle' ? chunks[speech.index]?.section : null;
+  const canNarrate = !!recordingUrl || (narrationSupported() && chunks.length > 0);
 
   // держим читаемый абзац в поле зрения
   useEffect(() => {
@@ -117,8 +122,9 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
               </div>
             )}
             {places && (
-              <div className="mt-1 flex items-center justify-center gap-1.5 text-muted">
-                <MapPin className="h-4 w-4 text-gold" /> {places}
+              <div className="mt-1 text-muted">
+                <MapPin className="mr-1.5 inline-block h-4 w-4 align-[-2px] text-gold" />
+                {places}
               </div>
             )}
           </motion.div>
@@ -128,9 +134,12 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="mx-auto mt-8 max-w-2xl font-serif text-2xl italic leading-relaxed text-gold-light sm:text-3xl"
+              // эпитафия-стих (с переносами строк) чуть мельче на телефоне, чтобы строки помещались целиком
+              className={`mx-auto mt-8 max-w-2xl whitespace-pre-line font-serif italic leading-relaxed text-gold-light sm:text-3xl ${
+                m.epitaph.includes('\n') ? 'text-xl' : 'text-2xl'
+              }`}
             >
-              «{m.epitaph}»
+              «{glueDashes(m.epitaph)}»
             </motion.p>
           )}
           {canNarrate && <NarrationButton n={narration} />}
@@ -162,7 +171,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                     i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
                   }`}
                 >
-                  {p}
+                  {glueDashes(p)}
                 </p>
               ))}
             </div>
@@ -216,7 +225,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                   className="card relative p-6 pt-10 sm:p-8 sm:pt-12"
                 >
                   <span className="absolute left-6 top-2 font-serif text-7xl leading-none text-gold/30">“</span>
-                  <p className="font-serif text-xl italic leading-relaxed">{w.text}</p>
+                  <p className="font-serif text-xl italic leading-relaxed">{glueDashes(w.text)}</p>
                   <footer className="mt-4 text-sm text-muted">
                     <span className="font-semibold text-gold-light">{w.author}</span>
                     {w.relation && `, ${w.relation}`}
@@ -266,7 +275,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
       </div>
 
       <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
-        Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span>
+        Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span> · {SLOGAN_TEXT}
       </footer>
 
       <NarrationBar n={narration} />

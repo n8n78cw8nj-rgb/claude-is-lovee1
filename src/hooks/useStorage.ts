@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import type { MediaMeta } from '../types/memorial';
-import { getMedia, listMediaMeta, mediaUrl, storageEstimate } from '../lib/storage';
+import { listMediaMeta, mediaIdsOf, mediaMeta, mediaUrl, storageEstimate } from '../lib/storage';
 import { useMemorials } from './useMemorials';
 
 /** object URL для медиа из IndexedDB */
@@ -24,10 +24,8 @@ export function useMediaMeta(id: string | null | undefined) {
     let alive = true;
     setMeta(null);
     if (id)
-      getMedia(id).then((r) => {
-        if (!alive || !r) return;
-        const { blob: _b, thumb, ...rest } = r;
-        setMeta({ ...rest, hasThumb: !!thumb });
+      mediaMeta(id).then((r) => {
+        if (alive && r) setMeta(r);
       });
     return () => {
       alive = false;
@@ -61,9 +59,9 @@ export function useStats(refreshKey = 0): Stats | null {
       for (const m of memorials) {
         photos += m.galleryIds.length + (m.portraitId ? 1 : 0);
         videos += m.videoIds.length;
-        audio += m.audioIds.length;
+        audio += m.audioIds.length + (m.narrationId ? 1 : 0);
         if (m.animatedVideoId) animated++;
-        [m.portraitId, m.animatedVideoId, ...m.galleryIds, ...m.videoIds, ...m.audioIds].forEach((x) => x && used.add(x));
+        mediaIdsOf(m).forEach((x) => used.add(x));
       }
       const bytes = [...byId.values()].reduce((s, m) => s + m.size, 0);
       if (alive)
