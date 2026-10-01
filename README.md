@@ -48,7 +48,7 @@ npm run dev          # http://localhost:5173
 
 Каждое фото описано в `memorial.json`:
 
-- `gallery` — по порядку лет: `{"file": "01_1939_детство.jpg", "year": "1939", "caption": "1939 год. Детство"}`. Имя файла — `NN_ГГГГ_описание.jpg`; фото без известного года — `XX_примерно-1960е_описание.jpg`, оно в конце галереи.
+- `gallery` — по порядку лет: `{"file": "01_1939_детство.jpg", "year": "1939", "caption": "1939 год. Детство"}`. Имя файла — `NN_ГГГГ_описание.jpg`. Известно только десятилетие — `"year": "1950-е"` и `NN_1950е_описание.jpg`, фото стоит рядом с 1950 годом. Год неизвестен — `XX_примерно-1960е_описание.jpg`, фото в конце галереи.
 - `biography` — абзацы: `{"text": "…", "photos": ["01_1939_детство.jpg"]}`. Фото стоит справа от абзаца (на телефоне — над ним), с подписью; два и больше — рядом.
 - `timeline` — у события `"photo": "01_1939_детство.jpg"` или список имён: миниатюры под событием.
 
@@ -61,7 +61,7 @@ npm run dev          # http://localhost:5173
 | `node scripts/photos.mjs import <файл> 1960_астория.jpg` | Кладёт фото в `public/images/gallery/`: до 2560 px и 2 МБ, поворот по EXIF, без метаданных (в том числе GPS), миниатюра 800 px в `thumbs/`. |
 | `node scripts/photos.mjs portrait <файл>` | Портрет: `public/images/portrait/portrait.jpg`. |
 | `node scripts/photos.mjs sync` | Сортирует галерею по годам, переименовывает файлы в `NN_ГГГГ_…` (без года — `XX_…`, в конце), обновляет ссылки абзацев и событий и миниатюры. |
-| `node scripts/photos.mjs report` | Отчёт: какое фото где стоит, что не привязано, у каких фото нет года. |
+| `node scripts/photos.mjs report` | Отчёт: какое фото где стоит, что не привязано, у каких фото нет года или год примерный. |
 
 **Озвучка.** `public/audio/biography-text.txt` — текст биографии для [Yandex SpeechKit Playground](https://aistudio.yandex.ru/docs/ru/speechkit/operations/tts-playground.html) (≈2600 символов, лимит — 5000): голос **filipp**, скорость **0.9**, формат **MP3**. Готовый файл — в `public/audio/biography.mp3`.
 

@@ -75,6 +75,11 @@ const readMemorial = () => JSON.parse(readFileSync(MEMORIAL, 'utf8'));
 const galleryOf = (j) => (Array.isArray(j.gallery) ? j.gallery : []).map((g) => (typeof g === 'string' ? { file: g } : g));
 const paragraphs = (j) => (Array.isArray(j.biography) ? j.biography : []);
 const yearOf = (g) => /\d{4}/.exec(g.year ?? '')?.[0];
+/** год в имени файла: «1957» → 1957, «1950-е» → 1950е */
+const yearTag = (g) => {
+  const m = /(\d{4})(-е)?/.exec(g.year ?? '');
+  return m && `${m[1]}${m[2] ? 'е' : ''}`;
+};
 
 /* ---------- команды ---------- */
 
@@ -92,7 +97,7 @@ function sync() {
   for (const g of gallery) {
     const parts = basename(g.file, extname(g.file)).split('_');
     const desc = parts.length >= 3 ? parts.slice(2).join('_') : parts[parts.length - 1];
-    const year = yearOf(g);
+    const year = yearTag(g);
     let name = year ? `${String(++n).padStart(2, '0')}_${year}_${desc}` : `XX_${parts.length >= 3 ? parts[1] : 'без-года'}_${desc}`;
     for (let k = 2; taken.has(name); k++) name = `${name.replace(/-\d+$/, '')}-${k}`; // два «XX_без-года_семья»
     taken.add(name);
@@ -165,6 +170,8 @@ function report() {
   if (gallery.length && bare.length) console.log(`Абзацы без фото: ${bare.join(', ')}`);
   const noYear = gallery.filter((g) => !yearOf(g));
   if (noYear.length) console.log(`Год не определён: ${noYear.map((g) => g.file).join(', ')}`);
+  const approx = gallery.filter((g) => yearOf(g) && !/^\d{4}$/.test(g.year.trim()));
+  if (approx.length) console.log(`Год примерный: ${approx.map((g) => `${g.file} (${g.year})`).join(', ')}`);
 }
 
 const [cmd, ...args] = process.argv.slice(2);
