@@ -261,7 +261,7 @@ export function mediaIdsOf(m: Memorial): string[] {
     m.narrationId,
     ...m.galleryIds,
     ...(m.biographyPhotos ?? []).flat(),
-    ...m.timeline.map((t) => t.photoId),
+    ...m.timeline.flatMap((t) => t.photoIds ?? []),
     ...m.videoIds,
     ...m.audioIds,
   ];

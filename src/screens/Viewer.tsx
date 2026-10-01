@@ -35,27 +35,38 @@ function Block({ title, children, delay = 0 }: { title: string; children: React.
   );
 }
 
-/** Фото к абзацу биографии: справа от текста на компьютере, над текстом на телефоне */
+/** Фото к абзацу биографии: справа от текста на компьютере, над текстом на телефоне; несколько — рядом */
 function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
-  const [main, ...more] = ids;
+  if (ids.length === 1) {
+    const [id] = ids;
+    return (
+      <figure className="mb-4 sm:float-right sm:mb-3 sm:ml-8 sm:w-56 lg:w-64">
+        <PhotoButton
+          id={id}
+          caption={captions?.[id]}
+          onOpen={() => onOpen(id)}
+          className="block w-full"
+          imgClassName="max-h-[30rem] w-full object-cover sm:max-h-96"
+        />
+        {captions?.[id] && <figcaption className="mt-2 text-sm leading-snug text-muted">{captions[id]}</figcaption>}
+      </figure>
+    );
+  }
   return (
-    <figure className="mb-4 sm:float-right sm:mb-3 sm:ml-8 sm:w-56 lg:w-64">
-      <PhotoButton
-        id={main}
-        caption={captions?.[main]}
-        onOpen={() => onOpen(main)}
-        className="block w-full"
-        imgClassName="max-h-[30rem] w-full object-cover sm:max-h-96"
-      />
-      {more.length > 0 && (
-        <div className="mt-2 grid grid-cols-3 gap-2">
-          {more.map((x) => (
-            <PhotoButton key={x} id={x} caption={captions?.[x]} onOpen={() => onOpen(x)} className="block aspect-square" />
-          ))}
-        </div>
-      )}
-      {captions?.[main] && <figcaption className="mt-2 text-sm leading-snug text-muted">{captions[main]}</figcaption>}
-    </figure>
+    <div className="mb-4 grid grid-cols-2 items-start gap-3 sm:float-right sm:mb-3 sm:ml-8 sm:w-80 lg:w-96">
+      {ids.map((id) => (
+        <figure key={id} className="min-w-0">
+          <PhotoButton
+            id={id}
+            caption={captions?.[id]}
+            onOpen={() => onOpen(id)}
+            className="block w-full"
+            imgClassName="max-h-72 w-full object-cover sm:max-h-64"
+          />
+          {captions?.[id] && <figcaption className="mt-2 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
+        </figure>
+      ))}
+    </div>
   );
 }
 
@@ -83,7 +94,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   const photoIds = useMemo(
     () =>
       m
-        ? [...new Set([...m.galleryIds, ...(m.biographyPhotos ?? []).flat(), ...m.timeline.flatMap((t) => (t.photoId ? [t.photoId] : []))])]
+        ? [...new Set([...m.galleryIds, ...(m.biographyPhotos ?? []).flat(), ...m.timeline.flatMap((t) => t.photoIds ?? [])])]
         : [],
     [m],
   );

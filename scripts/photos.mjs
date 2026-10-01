@@ -127,7 +127,8 @@ function sync() {
   const ren = (f) => renames.get(f) ?? f;
   j.gallery = gallery;
   if (Array.isArray(j.biography)) j.biography = j.biography.map((p) => ({ ...p, photos: (p.photos ?? []).map(ren) }));
-  j.timeline = (j.timeline ?? []).map((t) => ({ ...t, photo: t.photo ? ren(t.photo) : null }));
+  // у события — одно фото строкой или список
+  j.timeline = (j.timeline ?? []).map((t) => ({ ...t, photo: Array.isArray(t.photo) ? t.photo.map(ren) : t.photo ? ren(t.photo) : null }));
   writeFileSync(MEMORIAL, format(j));
   for (const [from, to] of renames) console.log(`${from} → ${to}`);
   console.log(`Галерея: ${gallery.length} фото, переименовано: ${renames.size}`);
@@ -140,7 +141,9 @@ function report() {
   const bio = new Map();
   paragraphs(j).forEach((p, i) => (p.photos ?? []).forEach((f) => bio.set(f, [...(bio.get(f) ?? []), i + 1])));
   const events = new Map();
-  (j.timeline ?? []).forEach((t) => t.photo && events.set(t.photo, [...(events.get(t.photo) ?? []), `${t.year} ${t.title}`]));
+  (j.timeline ?? []).forEach((t) =>
+    [t.photo].flat().filter(Boolean).forEach((f) => events.set(f, [...(events.get(f) ?? []), `${t.year} ${t.title}`])),
+  );
 
   const portrait = existsSync(join(PORTRAIT, 'portrait.jpg'));
   console.log(`Портрет: ${portrait ? 'portrait.jpg (главное фото)' : 'нет — на странице инициалы'}\n`);

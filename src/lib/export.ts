@@ -141,9 +141,10 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
       .map(
         (t) =>
           `<li><span class="year">${e(t.year)}</span><h3>${e(t.title)}</h3>${t.text ? `<p>${e(t.text)}</p>` : ''}${
-            t.photoId && media.has(t.photoId)
-              ? `<a href="${src(t.photoId)}" target="_blank"><img class="tl-photo" loading="lazy" src="${thumb(t.photoId)}" alt="${e(caption(t.photoId))}"></a>`
-              : ''
+            (t.photoIds ?? [])
+              .filter((id) => media.has(id))
+              .map((id) => `<a href="${src(id)}" target="_blank"><img class="tl-photo" loading="lazy" src="${thumb(id)}" alt="${e(caption(id))}"></a>`)
+              .join('')
           }</li>`,
       )
       .join('')}</ol></section>`);
@@ -205,7 +206,7 @@ h2{font:700 30px 'PT Serif',serif;margin:0 0 18px;color:#D4B07A}h3{margin:0;font
 .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
 .gallery figure{margin:0}.gallery figcaption,.bio-photo figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin:6px 0 0}
 .para{display:flow-root}.bio-photo{float:right;width:220px;margin:6px 0 12px 20px}.bio-photo img{width:100%;border-radius:12px;display:block}
-.tl-photo{display:block;margin-top:8px;height:96px;border-radius:10px;object-fit:cover}
+.tl-photo{display:inline-block;margin:8px 8px 0 0;height:96px;border-radius:10px;object-fit:cover}
 @media(max-width:600px){.bio-photo{float:none;width:auto;margin:0 0 12px}}
 video{width:100%;border-radius:14px;background:#000;margin-bottom:14px}.alive{max-height:80vh}
 audio{width:100%}figure{margin:0 0 14px}figcaption{color:#9CA3AF;font-size:14px;margin-bottom:6px}

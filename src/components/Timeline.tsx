@@ -32,14 +32,19 @@ export function Timeline({
           </div>
           <h4 className="text-lg font-semibold sm:text-xl">{glueDashes(t.title)}</h4>
           {t.text && <p className="mt-1 text-muted">{glueDashes(t.text)}</p>}
-          {t.photoId && onOpenPhoto && (
-            <PhotoButton
-              id={t.photoId}
-              caption={captions?.[t.photoId]}
-              onOpen={() => onOpenPhoto(t.photoId!)}
-              className="mt-3 inline-block"
-              imgClassName="h-24 w-auto max-w-full object-cover sm:h-28"
-            />
+          {!!t.photoIds?.length && onOpenPhoto && (
+            <div className="mt-3 flex flex-wrap gap-2">
+              {t.photoIds.map((id) => (
+                <PhotoButton
+                  key={id}
+                  id={id}
+                  caption={captions?.[id]}
+                  onOpen={() => onOpenPhoto(id)}
+                  className="inline-block"
+                  imgClassName="h-24 w-auto max-w-full object-cover sm:h-28"
+                />
+              ))}
+            </div>
           )}
         </motion.li>
       ))}

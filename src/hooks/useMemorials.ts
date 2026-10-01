@@ -44,7 +44,7 @@ export function useMemorials() {
       narrationId: await clone(src.narrationId),
       galleryIds: await cloneList(src.galleryIds),
       biographyPhotos: src.biographyPhotos && (await Promise.all(src.biographyPhotos.map(cloneList))),
-      timeline: await Promise.all(src.timeline.map(async (t) => ({ ...t, photoId: await clone(t.photoId) }))),
+      timeline: await Promise.all(src.timeline.map(async (t) => ({ ...t, photoIds: await cloneList(t.photoIds ?? []) }))),
       captions: Object.fromEntries(captions.filter(([id]) => id)),
       videoIds: await cloneList(src.videoIds),
       audioIds: await cloneList(src.audioIds),

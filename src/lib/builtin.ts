@@ -34,8 +34,8 @@ interface MemorialJson {
   epitaph?: string;
   /** Абзацы с фото; можно и одной строкой с абзацами через пустую строку */
   biography?: string | ParagraphJson[];
-  /** У события может быть фото: "photo": "01_1939_детство.jpg" */
-  timeline?: (Omit<TimelineEvent, 'photoId'> & { photo?: string | null })[];
+  /** Фото события: "photo": "01_1939_детство.jpg" или список имён */
+  timeline?: (Omit<TimelineEvent, 'photoIds'> & { photo?: string | string[] | null })[];
   words?: Memorial['words'];
   symbol?: Memorial['symbol'];
   /** Пути к файлам в public/: «/images/portrait/portrait.jpg» */
@@ -116,7 +116,10 @@ function fromJson(j: MemorialJson): Memorial {
     biography: paragraphs.map((p) => p.text).join('\n\n'),
     biographyPhotos: paragraphs.map((p) => p.photos),
     portraitId: existing(j.portrait),
-    timeline: (j.timeline ?? []).map(({ photo: ref, ...t }) => ({ ...t, photoId: photo(ref) })),
+    timeline: (j.timeline ?? []).map(({ photo: ref, ...t }) => ({
+      ...t,
+      photoIds: (Array.isArray(ref) ? ref : [ref]).map(photo).filter((x): x is string => !!x),
+    })),
     galleryIds: gallery.ids,
     captions: gallery.captions,
     videoIds: (j.videos ?? []).map(existing).filter((x): x is string => !!x),

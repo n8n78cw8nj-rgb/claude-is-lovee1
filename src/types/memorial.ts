@@ -3,7 +3,7 @@ export interface TimelineEvent {
   title: string;
   text: string;
   /** Фото к событию (id медиа) */
-  photoId?: string | null;
+  photoIds?: string[];
 }
 
 export interface Word {
