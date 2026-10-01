@@ -24,18 +24,28 @@ export function useMemorials() {
     const src = getMemorials().find((m) => m.id === id);
     if (!src) return null;
     const newId = uid();
-    const cloneList = async (ids: string[]) =>
-      (await Promise.all(ids.map((x) => cloneMedia(x)))).filter((x): x is string => !!x);
+    // одно фото может стоять и в галерее, и у абзаца, и у события — копируем его один раз
+    const copies = new Map<string, Promise<string | null>>();
+    const clone = (id: string | null | undefined) => {
+      if (!id) return Promise.resolve(null);
+      if (!copies.has(id)) copies.set(id, cloneMedia(id));
+      return copies.get(id)!;
+    };
+    const cloneList = async (ids: string[]) => (await Promise.all(ids.map(clone))).filter((x): x is string => !!x);
+    const captions = await Promise.all(Object.entries(src.captions ?? {}).map(async ([id, c]) => [await clone(id), c] as const));
     const now = new Date().toISOString();
     const copy: Memorial = {
       ...structuredClone(src),
       id: newId,
       fullName: `${src.fullName} (копия)`,
       qrUrl: buildQrUrl(newId),
-      portraitId: await cloneMedia(src.portraitId),
-      animatedVideoId: await cloneMedia(src.animatedVideoId),
-      narrationId: await cloneMedia(src.narrationId ?? null),
+      portraitId: await clone(src.portraitId),
+      animatedVideoId: await clone(src.animatedVideoId),
+      narrationId: await clone(src.narrationId),
       galleryIds: await cloneList(src.galleryIds),
+      biographyPhotos: src.biographyPhotos && (await Promise.all(src.biographyPhotos.map(cloneList))),
+      timeline: await Promise.all(src.timeline.map(async (t) => ({ ...t, photoId: await clone(t.photoId) }))),
+      captions: Object.fromEntries(captions.filter(([id]) => id)),
       videoIds: await cloneList(src.videoIds),
       audioIds: await cloneList(src.audioIds),
       createdAt: now,

@@ -1,4 +1,5 @@
 import { openDB, type IDBPDatabase } from 'idb';
+import publicMedia from 'virtual:public-media';
 import type { AppSettings, MediaKind, MediaMeta, MediaRecord, Memorial } from '../types/memorial';
 import { BUILTINS, builtinRev, isBuiltinId } from './builtin';
 import { isQuotaError, uid } from './utils';
@@ -92,6 +93,14 @@ export const isStaticMedia = (id: string) => id.startsWith('/');
 /** Пути в memorial.json от корня, но сайт может открываться не из корня домена (подпапка, file://) */
 export const staticUrl = (path: string) => import.meta.env.BASE_URL + path.replace(/^\/+/, '');
 
+const publicFiles = new Set(publicMedia);
+
+/** Миниатюра фото сайта: /images/gallery/01.jpg → /images/gallery/thumbs/01.webp (если её сделали) */
+function staticThumb(path: string): string {
+  const thumb = path.replace(/\/([^/]+)\.[^./]+$/, '/thumbs/$1.webp');
+  return publicFiles.has(thumb) ? thumb : path;
+}
+
 const STATIC_MIME: Record<string, string> = {
   jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', webp: 'image/webp', gif: 'image/gif', avif: 'image/avif',
   mp4: 'video/mp4', m4v: 'video/mp4', webm: 'video/webm', mov: 'video/quicktime',
@@ -133,7 +142,7 @@ export async function readMedia(id: string): Promise<MediaRecord | undefined> {
 const urlCache = new Map<string, string>();
 
 export async function mediaUrl(id: string, variant: 'full' | 'thumb' = 'full'): Promise<string | null> {
-  if (isStaticMedia(id)) return staticUrl(id);
+  if (isStaticMedia(id)) return staticUrl(variant === 'thumb' ? staticThumb(id) : id);
   const key = `${id}:${variant}`;
   const cached = urlCache.get(key);
   if (cached) return cached;
@@ -246,9 +255,17 @@ export async function clearAll() {
 }
 
 export function mediaIdsOf(m: Memorial): string[] {
-  return [m.portraitId, m.animatedVideoId, m.narrationId, ...m.galleryIds, ...m.videoIds, ...m.audioIds].filter(
-    (x): x is string => !!x,
-  );
+  const ids = [
+    m.portraitId,
+    m.animatedVideoId,
+    m.narrationId,
+    ...m.galleryIds,
+    ...(m.biographyPhotos ?? []).flat(),
+    ...m.timeline.map((t) => t.photoId),
+    ...m.videoIds,
+    ...m.audioIds,
+  ];
+  return [...new Set(ids.filter((x): x is string => !!x))];
 }
 
 /** Удаляет из IndexedDB медиа, на которые не ссылается ни одна страница */

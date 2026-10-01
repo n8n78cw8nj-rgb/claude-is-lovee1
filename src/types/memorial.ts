@@ -2,6 +2,8 @@ export interface TimelineEvent {
   year: string;
   title: string;
   text: string;
+  /** Фото к событию (id медиа) */
+  photoId?: string | null;
 }
 
 export interface Word {
@@ -26,9 +28,13 @@ export interface Memorial {
   deathPlace: string;
   epitaph: string;
   biography: string;
+  /** Фото к абзацам биографии: [номер абзаца, как в biography.split(/\n{2,}/)] → id медиа */
+  biographyPhotos?: string[][];
   portraitId: string | null;
   timeline: TimelineEvent[];
   galleryIds: string[];
+  /** Подписи к фото: id медиа → «1960. Ресторан „Астория“» */
+  captions?: Record<string, string>;
   videoIds: string[];
   animatedVideoId: string | null;
   audioIds: string[];

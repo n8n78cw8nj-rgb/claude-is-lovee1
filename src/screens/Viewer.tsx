@@ -1,8 +1,8 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Mail, MapPin, Pencil, Phone, QrCode } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/Button';
-import { Gallery } from '../components/Gallery';
+import { Gallery, PhotoButton, PhotoLightbox } from '../components/Gallery';
 import { NarrationBar, NarrationButton } from '../components/NarrationPlayer';
 import { Portrait } from '../components/MemorialCard';
 import { Timeline } from '../components/Timeline';
@@ -35,6 +35,30 @@ function Block({ title, children, delay = 0 }: { title: string; children: React.
   );
 }
 
+/** Фото к абзацу биографии: справа от текста на компьютере, над текстом на телефоне */
+function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
+  const [main, ...more] = ids;
+  return (
+    <figure className="mb-4 sm:float-right sm:mb-3 sm:ml-8 sm:w-56 lg:w-64">
+      <PhotoButton
+        id={main}
+        caption={captions?.[main]}
+        onOpen={() => onOpen(main)}
+        className="block w-full"
+        imgClassName="max-h-96 w-full object-cover sm:max-h-80"
+      />
+      {more.length > 0 && (
+        <div className="mt-2 grid grid-cols-3 gap-2">
+          {more.map((x) => (
+            <PhotoButton key={x} id={x} caption={captions?.[x]} onOpen={() => onOpen(x)} className="block aspect-square" />
+          ))}
+        </div>
+      )}
+      {captions?.[main] && <figcaption className="mt-2 text-sm leading-snug text-muted">{captions[main]}</figcaption>}
+    </figure>
+  );
+}
+
 export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   const { get } = useMemorials();
   const { go, goHome } = useNav();
@@ -54,6 +78,17 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   const narration: Narration = recordingUrl ? recording : speech;
   const reading = !recordingUrl && speech.state !== 'idle' ? chunks[speech.index]?.section : null;
   const canNarrate = !!recordingUrl || (narrationSupported() && chunks.length > 0);
+
+  // все фото страницы для просмотра крупно: галерея, затем фото абзацев и событий, которых в ней нет
+  const photoIds = useMemo(
+    () =>
+      m
+        ? [...new Set([...m.galleryIds, ...(m.biographyPhotos ?? []).flat(), ...m.timeline.flatMap((t) => (t.photoId ? [t.photoId] : []))])]
+        : [],
+    [m],
+  );
+  const [photoIndex, setPhotoIndex] = useState(-1);
+  const openPhoto = useCallback((photoId: string) => setPhotoIndex(photoIds.indexOf(photoId)), [photoIds]);
 
   // держим читаемый абзац в поле зрения
   useEffect(() => {
@@ -164,16 +199,17 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                 .map((p) => p.trim())
                 .filter(Boolean)
                 .map((p, i) => (
-                <p
-                  key={i}
-                  data-narr={`bio-${i}`}
-                  className={`whitespace-pre-line ${hl(`bio-${i}`)} ${
-                    i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
-                  }`}
-                >
-                  {glueDashes(p)}
-                </p>
-              ))}
+                  <div key={i} data-narr={`bio-${i}`} className={`flow-root ${hl(`bio-${i}`)}`}>
+                    {!!m.biographyPhotos?.[i]?.length && <BioPhotos ids={m.biographyPhotos[i]} captions={m.captions} onOpen={openPhoto} />}
+                    <p
+                      className={`whitespace-pre-line ${
+                        i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
+                      }`}
+                    >
+                      {glueDashes(p)}
+                    </p>
+                  </div>
+                ))}
             </div>
           </Block>
         )}
@@ -181,14 +217,14 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
         {m.timeline.length > 0 && (
           <Block title="Хронология">
             <div data-narr="timeline" className={hl('timeline')}>
-              <Timeline items={m.timeline} />
+              <Timeline items={m.timeline} captions={m.captions} onOpenPhoto={openPhoto} />
             </div>
           </Block>
         )}
 
         {m.galleryIds.length > 0 && (
           <Block title="Фотографии">
-            <Gallery ids={m.galleryIds} />
+            <Gallery ids={m.galleryIds} captions={m.captions} onOpen={(i) => openPhoto(m.galleryIds[i])} />
           </Block>
         )}
 
@@ -278,6 +314,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
         Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span> · {SLOGAN_TEXT}
       </footer>
 
+      <PhotoLightbox ids={photoIds} captions={m.captions} index={photoIndex} onClose={() => setPhotoIndex(-1)} />
       <NarrationBar n={narration} />
     </div>
   );

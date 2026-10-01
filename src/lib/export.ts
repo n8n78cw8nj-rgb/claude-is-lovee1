@@ -38,8 +38,8 @@ async function addMedia(zip: JSZip, ids: string[], onProgress?: Progress): Promi
     i++;
     const rec = await readMedia(id);
     if (!rec) continue;
-    // файл сайта: «/images/gallery/01.jpg» → media/images_gallery_01.jpg
-    const key = isStaticMedia(id) ? id.replace(/^\/+/, '').replace(/\.[^./]+$/, '').replace(/[^\w-]+/g, '_') : id;
+    // файл сайта: «/images/gallery/01_1939_детство.jpg» → media/images_gallery_01_1939_детство.jpg
+    const key = isStaticMedia(id) ? id.replace(/^\/+/, '').replace(/\.[^./]+$/, '').replace(/[^\p{L}\p{N}_-]+/gu, '_') : id;
     const file = `media/${key}.${extFromMime(rec.mime, rec.name)}`;
     // медиа уже сжаты — упаковываем без повторного сжатия
     zip.file(file, rec.blob, { compression: 'STORE', binary: true });
@@ -112,10 +112,21 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
   const e = escapeHtml;
   const src = (id: string | null) => (id && media.get(id)?.file) || '';
   const thumb = (id: string) => media.get(id)?.thumb || src(id);
+  const caption = (id: string) => m.captions?.[id] ?? '';
+  const figure = (id: string, cls: string) =>
+    `<figure class="${cls}"><a href="${src(id)}" target="_blank"><img loading="lazy" src="${thumb(id)}" alt="${e(caption(id))}"></a>${
+      caption(id) ? `<figcaption>${e(caption(id))}</figcaption>` : ''
+    }</figure>`;
+  // абзацы считаем так же, как страница в приложении, — фото привязаны к номеру абзаца
   const para = (t: string) =>
     t
       .split(/\n{2,}/)
-      .map((p) => `<p>${e(p).replace(/\n/g, '<br>')}</p>`)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p, i) => {
+        const photos = (m.biographyPhotos?.[i] ?? []).filter((id) => media.has(id));
+        return `<div class="para">${photos.map((id) => figure(id, 'bio-photo')).join('')}<p>${e(p).replace(/\n/g, '<br>')}</p></div>`;
+      })
       .join('');
 
   const sections: string[] = [];
@@ -127,13 +138,20 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
   if (m.biography) sections.push(`<section><h2>Биография</h2><div class="bio">${para(m.biography)}</div></section>`);
   if (m.timeline.length) {
     sections.push(`<section><h2>Хронология</h2><ol class="timeline">${m.timeline
-      .map((t) => `<li><span class="year">${e(t.year)}</span><h3>${e(t.title)}</h3>${t.text ? `<p>${e(t.text)}</p>` : ''}</li>`)
+      .map(
+        (t) =>
+          `<li><span class="year">${e(t.year)}</span><h3>${e(t.title)}</h3>${t.text ? `<p>${e(t.text)}</p>` : ''}${
+            t.photoId && media.has(t.photoId)
+              ? `<a href="${src(t.photoId)}" target="_blank"><img class="tl-photo" loading="lazy" src="${thumb(t.photoId)}" alt="${e(caption(t.photoId))}"></a>`
+              : ''
+          }</li>`,
+      )
       .join('')}</ol></section>`);
   }
   const gallery = m.galleryIds.filter((id) => media.has(id));
   if (gallery.length) {
     sections.push(`<section><h2>Фотографии</h2><div class="gallery">${gallery
-      .map((id) => `<a href="${src(id)}" target="_blank"><img loading="lazy" src="${thumb(id)}" alt=""></a>`)
+      .map((id) => figure(id, 'photo'))
       .join('')}</div></section>`);
   }
   const videos = m.videoIds.filter((id) => media.has(id));
@@ -185,6 +203,10 @@ h2{font:700 30px 'PT Serif',serif;margin:0 0 18px;color:#D4B07A}h3{margin:0;font
 .year{color:#B8925A;font-weight:600}.timeline p{margin:4px 0 0;color:#9CA3AF}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.gallery figure{margin:0}.gallery figcaption,.bio-photo figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin:6px 0 0}
+.para{display:flow-root}.bio-photo{float:right;width:220px;margin:6px 0 12px 20px}.bio-photo img{width:100%;border-radius:12px;display:block}
+.tl-photo{display:block;margin-top:8px;height:96px;border-radius:10px;object-fit:cover}
+@media(max-width:600px){.bio-photo{float:none;width:auto;margin:0 0 12px}}
 video{width:100%;border-radius:14px;background:#000;margin-bottom:14px}.alive{max-height:80vh}
 audio{width:100%}figure{margin:0 0 14px}figcaption{color:#9CA3AF;font-size:14px;margin-bottom:6px}
 blockquote{margin:0 0 20px;padding-left:18px;border-left:3px solid #B8925A}blockquote p{font:italic 20px/1.5 'PT Serif',serif;margin:0}

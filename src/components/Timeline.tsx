@@ -1,8 +1,18 @@
 import { motion } from 'framer-motion';
 import { glueDashes } from '../lib/utils';
 import type { TimelineEvent } from '../types/memorial';
+import { PhotoButton } from './Gallery';
 
-export function Timeline({ items }: { items: TimelineEvent[] }) {
+export function Timeline({
+  items,
+  captions,
+  onOpenPhoto,
+}: {
+  items: TimelineEvent[];
+  captions?: Record<string, string>;
+  /** клик по фото события — открыть его крупно */
+  onOpenPhoto?: (id: string) => void;
+}) {
   const list = items.filter((t) => t.year || t.title || t.text);
   if (!list.length) return null;
   return (
@@ -22,6 +32,15 @@ export function Timeline({ items }: { items: TimelineEvent[] }) {
           </div>
           <h4 className="text-lg font-semibold sm:text-xl">{glueDashes(t.title)}</h4>
           {t.text && <p className="mt-1 text-muted">{glueDashes(t.text)}</p>}
+          {t.photoId && onOpenPhoto && (
+            <PhotoButton
+              id={t.photoId}
+              caption={captions?.[t.photoId]}
+              onOpen={() => onOpenPhoto(t.photoId!)}
+              className="mt-3 inline-block"
+              imgClassName="h-24 w-auto max-w-full object-cover sm:h-28"
+            />
+          )}
         </motion.li>
       ))}
     </ol>

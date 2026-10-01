@@ -1,12 +1,29 @@
 import publicMedia from 'virtual:public-media';
 import data from '../data/memorial.json';
-import type { Memorial } from '../types/memorial';
+import type { Memorial, TimelineEvent } from '../types/memorial';
 import { lifeYears } from './utils';
 
 /**
  * Встроенная страница памяти — часть сайта, а не данные браузера: тексты в src/data/memorial.json,
  * фото, видео и аудио — файлы в public/. Её видит любой посетитель, в том числе по QR с памятника.
  */
+
+/** Фото галереи: файл в public/images/gallery/ и подпись */
+interface PhotoJson {
+  /** «01_1939_детство.jpg» */
+  file: string;
+  /** Год или период: «1939», «1957–1960»; пусто — год неизвестен */
+  year?: string;
+  /** «1939 год. Детство» */
+  caption?: string;
+}
+
+/** Абзац биографии и фото к нему (имена файлов из галереи) */
+interface ParagraphJson {
+  text: string;
+  photos?: string[];
+}
+
 interface MemorialJson {
   id: string;
   fullName: string;
@@ -15,38 +32,69 @@ interface MemorialJson {
   birthPlace?: string;
   deathPlace?: string;
   epitaph?: string;
-  biography?: string;
-  timeline?: Memorial['timeline'];
+  /** Абзацы с фото; можно и одной строкой с абзацами через пустую строку */
+  biography?: string | ParagraphJson[];
+  /** У события может быть фото: "photo": "01_1939_детство.jpg" */
+  timeline?: (Omit<TimelineEvent, 'photoId'> & { photo?: string | null })[];
   words?: Memorial['words'];
   symbol?: Memorial['symbol'];
   /** Пути к файлам в public/: «/images/portrait/portrait.jpg» */
   portrait?: string;
-  /** Список фото или папка: «/images/gallery/» — все фото из неё по порядку имён (01, 02 …) */
-  gallery?: string | string[];
+  /** Фото с подписями по порядку; или папка «/images/gallery/» — все фото из неё по порядку имён */
+  gallery?: string | (string | PhotoJson)[];
   animatedVideo?: string;
   videos?: string[];
   /** Озвучка биографии (MP3) — играет кнопка «Послушать историю жизни» */
   audio?: string;
 }
 
-const files = new Set(publicMedia);
+const GALLERY_DIR = '/images/gallery/';
 const IMAGE = /\.(jpe?g|png|webp|gif|avif)$/i;
 const CREATED = '2026-10-01T00:00:00.000Z';
 
-const normalize = (path: string) => `/${path.trim().replace(/^\.?\/+/, '')}`;
+// Имена сравниваем в NFC: на macOS «й» и «ё» в именах файлов хранятся разложенными
+const files = new Map(publicMedia.map((f) => [f.normalize('NFC'), f]));
 
-/** Путь из memorial.json, если файл лежит в public/; иначе null — на странице будет заглушка */
-function existing(path: string | undefined): string | null {
-  return path && files.has(normalize(path)) ? normalize(path) : null;
+/** Путь к файлу как он лежит в public/, если файл есть; иначе null — на странице будет заглушка */
+function existing(path: string | null | undefined): string | null {
+  if (!path) return null;
+  return files.get(`/${path.trim().replace(/^\.?\/+/, '')}`.normalize('NFC')) ?? null;
 }
 
-function galleryOf(gallery: MemorialJson['gallery']): string[] {
-  if (Array.isArray(gallery)) return gallery.map(existing).filter((x): x is string => !!x);
-  if (!gallery) return [];
-  const dir = normalize(gallery).replace(/\/?$/, '/');
+/** «01_1939_детство.jpg» → фото из галереи; путь от корня — как есть */
+const photo = (ref: string | null | undefined) => existing(ref && !ref.startsWith('/') ? GALLERY_DIR + ref : ref);
+
+function folder(dir: string): string[] {
+  const d = `/${dir.trim().replace(/^\.?\/+/, '').replace(/\/?$/, '/')}`;
   return publicMedia
-    .filter((f) => f.startsWith(dir) && !f.slice(dir.length).includes('/') && IMAGE.test(f))
+    .filter((f) => f.startsWith(d) && !f.slice(d.length).includes('/') && IMAGE.test(f))
     .sort((a, b) => a.localeCompare(b, 'ru', { numeric: true }));
+}
+
+function galleryOf(gallery: MemorialJson['gallery']) {
+  const ids: string[] = [];
+  const captions: Record<string, string> = {};
+  const add = (id: string | null, caption?: string) => {
+    if (!id || ids.includes(id)) return;
+    ids.push(id);
+    if (caption) captions[id] = caption;
+  };
+  if (typeof gallery === 'string') folder(gallery).forEach((id) => add(id));
+  else
+    for (const g of gallery ?? []) {
+      if (typeof g === 'string') add(photo(g));
+      else add(photo(g.file), g.caption);
+    }
+  // фото, которые положили в папку, но ещё не описали в memorial.json, — в конце, без подписи
+  folder(GALLERY_DIR).forEach((id) => add(id));
+  return { ids, captions };
+}
+
+function paragraphsOf(biography: MemorialJson['biography']) {
+  const list: ParagraphJson[] = typeof biography === 'string' ? biography.split(/\n{2,}/).map((text) => ({ text })) : biography ?? [];
+  return list
+    .map((p) => ({ text: p.text.trim(), photos: (p.photos ?? []).map(photo).filter((x): x is string => !!x) }))
+    .filter((p) => p.text);
 }
 
 /** Ссылка на страницу памяти на этом сайте — её кодирует QR встроенной страницы */
@@ -55,6 +103,8 @@ export function pageLink(id: string): string {
 }
 
 function fromJson(j: MemorialJson): Memorial {
+  const gallery = galleryOf(j.gallery);
+  const paragraphs = paragraphsOf(j.biography);
   return {
     id: j.id,
     fullName: j.fullName,
@@ -63,10 +113,12 @@ function fromJson(j: MemorialJson): Memorial {
     birthPlace: j.birthPlace ?? '',
     deathPlace: j.deathPlace ?? '',
     epitaph: j.epitaph ?? '',
-    biography: j.biography ?? '',
+    biography: paragraphs.map((p) => p.text).join('\n\n'),
+    biographyPhotos: paragraphs.map((p) => p.photos),
     portraitId: existing(j.portrait),
-    timeline: j.timeline ?? [],
-    galleryIds: galleryOf(j.gallery),
+    timeline: (j.timeline ?? []).map(({ photo: ref, ...t }) => ({ ...t, photoId: photo(ref) })),
+    galleryIds: gallery.ids,
+    captions: gallery.captions,
     videoIds: (j.videos ?? []).map(existing).filter((x): x is string => !!x),
     animatedVideoId: existing(j.animatedVideo),
     audioIds: [],
