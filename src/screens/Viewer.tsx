@@ -70,6 +70,20 @@ function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record
   );
 }
 
+/** Три фото и больше — лентой под абзацем, чтобы рядом с коротким текстом не оставалось пустоты */
+function BioPhotoStrip({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
+  return (
+    <div className="mt-5 grid grid-cols-2 items-start gap-3 sm:grid-cols-3 sm:gap-4">
+      {ids.map((id) => (
+        <figure key={id} className="min-w-0">
+          <PhotoButton id={id} caption={captions?.[id]} onOpen={() => onOpen(id)} className="block w-full" imgClassName="aspect-[3/4] w-full object-cover" />
+          {captions?.[id] && <figcaption className="mt-2 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  );
+}
+
 export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   const { get } = useMemorials();
   const { go, goHome } = useNav();
@@ -98,6 +112,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
         : [],
     [m],
   );
+  const photosOf = (paragraph: number) => m?.biographyPhotos?.[paragraph] ?? [];
   const [photoIndex, setPhotoIndex] = useState(-1);
   const openPhoto = useCallback((photoId: string) => setPhotoIndex(photoIds.indexOf(photoId)), [photoIds]);
 
@@ -211,7 +226,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                 .filter(Boolean)
                 .map((p, i) => (
                   <div key={i} data-narr={`bio-${i}`} className={`flow-root ${hl(`bio-${i}`)}`}>
-                    {!!m.biographyPhotos?.[i]?.length && <BioPhotos ids={m.biographyPhotos[i]} captions={m.captions} onOpen={openPhoto} />}
+                    {photosOf(i).length > 0 && photosOf(i).length < 3 && <BioPhotos ids={photosOf(i)} captions={m.captions} onOpen={openPhoto} />}
                     <p
                       className={`whitespace-pre-line ${
                         i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
@@ -219,6 +234,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                     >
                       {glueDashes(p)}
                     </p>
+                    {photosOf(i).length >= 3 && <BioPhotoStrip ids={photosOf(i)} captions={m.captions} onOpen={openPhoto} />}
                   </div>
                 ))}
             </div>
