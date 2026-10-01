@@ -61,7 +61,7 @@ npm run dev          # http://localhost:5173
 | `node scripts/photos.mjs import <файл> 1960_астория.jpg` | Кладёт фото в `public/images/gallery/`: до 2560 px и 2 МБ, поворот по EXIF, без метаданных (в том числе GPS), миниатюра 800 px в `thumbs/`. |
 | `node scripts/photos.mjs portrait <файл>` | Портрет: `public/images/portrait/portrait.jpg`. |
 | `node scripts/photos.mjs sync` | Сортирует галерею по годам, переименовывает файлы в `NN_ГГГГ_…` (без года — `XX_…`, в конце), обновляет ссылки абзацев и событий и миниатюры. |
-| `node scripts/photos.mjs report` | Отчёт: какое фото где стоит, что не привязано, у каких фото нет года или год примерный. |
+| `node scripts/photos.mjs report` | Отчёт: какое фото где стоит, что не привязано, у каких фото нет года или указан не точный год, а десятилетие или период. |
 
 **Озвучка.** `public/audio/biography-text.txt` — текст биографии для [Yandex SpeechKit Playground](https://aistudio.yandex.ru/docs/ru/speechkit/operations/tts-playground.html) (≈2600 символов, лимит — 5000): голос **filipp**, скорость **0.9**, формат **MP3**. Готовый файл — в `public/audio/biography.mp3`.
 

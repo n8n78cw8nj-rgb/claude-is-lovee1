@@ -171,7 +171,7 @@ function report() {
   const noYear = gallery.filter((g) => !yearOf(g));
   if (noYear.length) console.log(`Год не определён: ${noYear.map((g) => g.file).join(', ')}`);
   const approx = gallery.filter((g) => yearOf(g) && !/^\d{4}$/.test(g.year.trim()));
-  if (approx.length) console.log(`Год примерный: ${approx.map((g) => `${g.file} (${g.year})`).join(', ')}`);
+  if (approx.length) console.log(`Без точного года (десятилетие или период): ${approx.map((g) => `${g.file} (${g.year})`).join(', ')}`);
 }
 
 const [cmd, ...args] = process.argv.slice(2);
