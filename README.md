@@ -63,7 +63,7 @@ npm run dev          # http://localhost:5173
 | `node scripts/photos.mjs sync` | Сортирует галерею по годам, переименовывает файлы в `NN_ГГГГ_…` (без года — `XX_…`, в конце), обновляет ссылки абзацев и событий и миниатюры. |
 | `node scripts/photos.mjs report` | Отчёт: какое фото где стоит, что не привязано, у каких фото нет года или указан не точный год, а десятилетие или период. |
 
-**Озвучка.** `public/audio/biography-text.txt` — текст биографии для [Yandex SpeechKit Playground](https://aistudio.yandex.ru/docs/ru/speechkit/operations/tts-playground.html) (≈2600 символов, лимит — 5000): голос **filipp**, скорость **0.9**, формат **MP3**. Готовый файл — в `public/audio/biography.mp3`.
+**Озвучка.** `public/audio/biography-text.txt` — текст биографии для [Yandex SpeechKit Playground](https://aistudio.yandex.ru/docs/ru/speechkit/operations/tts-playground.html) (≈2500 символов, лимит — 5000): голос **filipp**, скорость **0.9**, формат **MP3**. Готовый файл — в `public/audio/biography.mp3`.
 
 ## Возможности
 
