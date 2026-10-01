@@ -45,7 +45,7 @@ function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record
         caption={captions?.[main]}
         onOpen={() => onOpen(main)}
         className="block w-full"
-        imgClassName="max-h-96 w-full object-cover sm:max-h-80"
+        imgClassName="max-h-[30rem] w-full object-cover sm:max-h-96"
       />
       {more.length > 0 && (
         <div className="mt-2 grid grid-cols-3 gap-2">
