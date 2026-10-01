@@ -75,10 +75,10 @@ const readMemorial = () => JSON.parse(readFileSync(MEMORIAL, 'utf8'));
 const galleryOf = (j) => (Array.isArray(j.gallery) ? j.gallery : []).map((g) => (typeof g === 'string' ? { file: g } : g));
 const paragraphs = (j) => (Array.isArray(j.biography) ? j.biography : []);
 const yearOf = (g) => /\d{4}/.exec(g.year ?? '')?.[0];
-/** год в имени файла: «1957» → 1957, «1950-е» → 1950е */
+/** год в имени файла: «1957» → 1957, «1950-е» → 1950е, «около 1969» → около-1969 */
 const yearTag = (g) => {
   const m = /(\d{4})(-е)?/.exec(g.year ?? '');
-  return m && `${m[1]}${m[2] ? 'е' : ''}`;
+  return m && `${/около|примерно/i.test(g.year) ? 'около-' : ''}${m[1]}${m[2] ? 'е' : ''}`;
 };
 
 /* ---------- команды ---------- */
