@@ -127,7 +127,8 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
         const photos = (m.biographyPhotos?.[i] ?? []).filter((id) => media.has(id));
         const text = `<p>${e(p).replace(/\n/g, '<br>')}</p>`;
         // три фото и больше — лентой под абзацем, как на странице в приложении
-        if (photos.length >= 3) return `<div class="para">${text}<div class="strip">${photos.map((id) => figure(id, 'photo')).join('')}</div></div>`;
+        if (photos.length >= 3)
+          return `<div class="para">${text}<div class="strip n${Math.min(photos.length, 5)}">${photos.map((id) => figure(id, 'photo')).join('')}</div></div>`;
         return `<div class="para">${photos.map((id) => figure(id, 'bio-photo')).join('')}${text}</div>`;
       })
       .join('');
@@ -210,6 +211,7 @@ h2{font:700 30px 'PT Serif',serif;margin:0 0 18px;color:#D4B07A}h3{margin:0;font
 .gallery figure{margin:0}.gallery figcaption,.bio-photo figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin:6px 0 0}
 .para{display:flow-root}.bio-photo{float:right;width:220px;margin:6px 0 12px 20px}.bio-photo img{width:100%;border-radius:12px;display:block}
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.strip figure{margin:0}.strip img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;display:block}.strip figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin-top:6px}
+.strip.n4{grid-template-columns:repeat(4,1fr)}@media(min-width:900px){.strip.n5{grid-template-columns:repeat(5,1fr)}}
 .tl-photo{display:inline-block;margin:8px 8px 0 0;height:96px;border-radius:10px;object-fit:cover}
 @media(max-width:600px){.bio-photo{float:none;width:auto;margin:0 0 12px}}
 video{width:100%;border-radius:14px;background:#000;margin-bottom:14px}.alive{max-height:80vh}

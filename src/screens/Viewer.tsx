@@ -70,14 +70,16 @@ function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record
   );
 }
 
-/** Три фото и больше — лентой под абзацем, чтобы рядом с коротким текстом не оставалось пустоты */
+/** Три фото и больше — лентой под абзацем, чтобы рядом с коротким текстом не оставалось пустоты; 4–5 фото на компьютере — в один ряд */
 function BioPhotoStrip({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
+  const cols = ids.length === 4 ? 'sm:grid-cols-4' : ids.length >= 5 ? 'sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-3';
   return (
-    <div className="mt-5 grid grid-cols-2 items-start gap-3 sm:grid-cols-3 sm:gap-4">
+    <div className={`mt-5 grid grid-cols-2 items-start gap-3 sm:gap-4 ${cols}`}>
       {ids.map((id) => (
         <figure key={id} className="min-w-0">
           <PhotoButton id={id} caption={captions?.[id]} onOpen={() => onOpen(id)} className="block w-full" imgClassName="aspect-[3/4] w-full object-cover" />
-          {captions?.[id] && <figcaption className="mt-2 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
+          {/* полная подпись — при открытии фото */}
+          {captions?.[id] && <figcaption className="mt-2 line-clamp-3 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
         </figure>
       ))}
     </div>
