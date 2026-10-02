@@ -1,8 +1,6 @@
 import { AnimatePresence, motion } from 'framer-motion';
 import { Headphones, Pause, Play, SkipBack, SkipForward, Square } from 'lucide-react';
-import type { useNarration } from '../hooks/useNarration';
-
-type Narration = ReturnType<typeof useNarration>;
+import type { Narration } from '../hooks/useNarration';
 
 /** Большая кнопка в шапке страницы памяти */
 export function NarrationButton({ n }: { n: Narration }) {
@@ -29,7 +27,7 @@ export function NarrationButton({ n }: { n: Narration }) {
 
 /** Панель управления внизу экрана, пока идёт озвучка */
 export function NarrationBar({ n }: { n: Narration }) {
-  const progress = n.total ? ((n.index + (n.state === 'idle' ? 0 : 1)) / n.total) * 100 : 0;
+  const progress = n.progress * 100;
   return (
     <AnimatePresence>
       {n.state !== 'idle' && (
@@ -63,9 +61,7 @@ export function NarrationBar({ n }: { n: Narration }) {
                 <Square className="h-4 w-4" />
               </button>
             </div>
-            <span className="text-sm tabular-nums text-muted">
-              {n.index + 1} / {n.total}
-            </span>
+            <span className="text-sm tabular-nums text-muted">{n.position}</span>
             <div className="ml-auto flex flex-wrap items-center gap-2">
               <select
                 id="narration-rate"

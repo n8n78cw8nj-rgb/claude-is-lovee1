@@ -1,18 +1,20 @@
 import { motion } from 'framer-motion';
 import { ArrowLeft, Download, Mail, MapPin, Pencil, Phone, QrCode } from 'lucide-react';
-import { useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Button } from '../components/Button';
-import { Gallery } from '../components/Gallery';
+import { Gallery, PhotoButton, PhotoLightbox } from '../components/Gallery';
 import { NarrationBar, NarrationButton } from '../components/NarrationPlayer';
 import { Portrait } from '../components/MemorialCard';
 import { Timeline } from '../components/Timeline';
 import { AudioPlayer, VideoPlayer } from '../components/VideoPlayer';
 import { useMemorials } from '../hooks/useMemorials';
-import { narrationSupported, useNarration } from '../hooks/useNarration';
+import { narrationSupported, useAudioNarration, useNarration, type Narration } from '../hooks/useNarration';
 import { useNav } from '../hooks/useNav';
+import { useMediaUrl } from '../hooks/useStorage';
+import { SLOGAN_TEXT } from '../lib/brand';
 import { buildNarration } from '../lib/narration';
 import { qrDataUrl } from '../lib/qr';
-import { formatDate, lifeYears } from '../lib/utils';
+import { formatDate, glueDashes, lifeYears } from '../lib/utils';
 import { exportWithToast } from './MemorialsList';
 
 function Block({ title, children, delay = 0 }: { title: string; children: React.ReactNode; delay?: number }) {
@@ -33,7 +35,59 @@ function Block({ title, children, delay = 0 }: { title: string; children: React.
   );
 }
 
-export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
+/** Фото к абзацу биографии: справа от текста на компьютере, над текстом на телефоне; несколько — рядом */
+function BioPhotos({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
+  if (ids.length === 1) {
+    const [id] = ids;
+    return (
+      <figure className="mb-4 sm:float-right sm:mb-3 sm:ml-8 sm:w-56 lg:w-64">
+        <PhotoButton
+          id={id}
+          caption={captions?.[id]}
+          onOpen={() => onOpen(id)}
+          className="block w-full"
+          imgClassName="max-h-[30rem] w-full object-cover sm:max-h-96"
+        />
+        {captions?.[id] && <figcaption className="mt-2 text-sm leading-snug text-muted">{captions[id]}</figcaption>}
+      </figure>
+    );
+  }
+  return (
+    <div className="mb-4 grid grid-cols-2 items-start gap-3 sm:float-right sm:mb-3 sm:ml-8 sm:w-80 lg:w-96">
+      {ids.map((id) => (
+        <figure key={id} className="min-w-0">
+          <PhotoButton
+            id={id}
+            caption={captions?.[id]}
+            onOpen={() => onOpen(id)}
+            className="block w-full"
+            imgClassName="max-h-72 w-full object-cover sm:max-h-64"
+          />
+          {captions?.[id] && <figcaption className="mt-2 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  );
+}
+
+/** Три фото и больше — лентой под абзацем, чтобы рядом с коротким текстом не оставалось пустоты; 4–5 фото на компьютере — в один ряд */
+function BioPhotoStrip({ ids, captions, onOpen }: { ids: string[]; captions?: Record<string, string>; onOpen: (id: string) => void }) {
+  const cols = ids.length === 4 ? 'sm:grid-cols-4' : ids.length >= 5 ? 'sm:grid-cols-3 lg:grid-cols-5' : 'sm:grid-cols-3';
+  return (
+    <div className={`mt-5 grid grid-cols-2 items-start gap-3 sm:gap-4 ${cols}`}>
+      {ids.map((id) => (
+        <figure key={id} className="min-w-0">
+          <PhotoButton id={id} caption={captions?.[id]} onOpen={() => onOpen(id)} className="block w-full" imgClassName="aspect-[3/4] w-full object-cover" />
+          {/* полная подпись — при открытии фото */}
+          {captions?.[id] && <figcaption className="mt-2 line-clamp-3 text-xs leading-snug text-muted sm:text-sm">{captions[id]}</figcaption>}
+        </figure>
+      ))}
+    </div>
+  );
+}
+
+/** visitor — открыли по QR: страница без кнопок редактора, списка, QR-студии и выгрузки */
+export function Viewer({ id, from, visitor = false }: { id: string; from?: 'home' | 'editor'; visitor?: boolean }) {
   const { get } = useMemorials();
   const { go, goHome } = useNav();
   const m = get(id);
@@ -44,11 +98,26 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
     if (qrUrl) qrDataUrl(qrUrl, 600).then(setQr);
   }, [qrUrl]);
 
-  // озвучка биографии
+  // озвучка биографии: готовый MP3, если он есть, иначе — синтез речи браузера
   const chunks = useMemo(() => (m ? buildNarration(m) : []), [m]);
-  const narration = useNarration(chunks);
-  const reading = narration.state !== 'idle' ? chunks[narration.index]?.section : null;
-  const canNarrate = narrationSupported() && chunks.length > 0;
+  const speech = useNarration(chunks);
+  const recordingUrl = useMediaUrl(m?.narrationId);
+  const recording = useAudioNarration(recordingUrl);
+  const narration: Narration = recordingUrl ? recording : speech;
+  const reading = !recordingUrl && speech.state !== 'idle' ? chunks[speech.index]?.section : null;
+  const canNarrate = !!recordingUrl || (narrationSupported() && chunks.length > 0);
+
+  // все фото страницы для просмотра крупно: галерея, затем фото абзацев и событий, которых в ней нет
+  const photoIds = useMemo(
+    () =>
+      m
+        ? [...new Set([...m.galleryIds, ...(m.biographyPhotos ?? []).flat(), ...m.timeline.flatMap((t) => t.photoIds ?? [])])]
+        : [],
+    [m],
+  );
+  const photosOf = (paragraph: number) => m?.biographyPhotos?.[paragraph] ?? [];
+  const [photoIndex, setPhotoIndex] = useState(-1);
+  const openPhoto = useCallback((photoId: string) => setPhotoIndex(photoIds.indexOf(photoId)), [photoIds]);
 
   // держим читаемый абзац в поле зрения
   useEffect(() => {
@@ -78,14 +147,16 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   return (
     <div className="relative">
       {/* верхняя панель */}
-      <div className="fixed right-4 top-20 z-40 flex gap-2 sm:right-6 sm:top-24">
-        <Button size="sm" variant="subtle" className="glass" icon={Pencil} onClick={() => go({ name: 'editor', id })}>
-          <span className="hidden sm:inline">Редактор</span>
-        </Button>
-        <Button size="sm" variant="outline" className="glass" icon={ArrowLeft} onClick={back}>
-          {from === 'editor' ? 'К редактору' : 'Назад к списку'}
-        </Button>
-      </div>
+      {!visitor && (
+        <div className="fixed right-4 top-20 z-40 flex gap-2 sm:right-6 sm:top-24">
+          <Button size="sm" variant="subtle" className="glass" icon={Pencil} onClick={() => go({ name: 'editor', id })}>
+            <span className="hidden sm:inline">Редактор</span>
+          </Button>
+          <Button size="sm" variant="outline" className="glass" icon={ArrowLeft} onClick={back}>
+            {from === 'editor' ? 'К редактору' : 'Назад к списку'}
+          </Button>
+        </div>
+      )}
 
       {/* 1. Hero */}
       <header className="relative overflow-hidden pb-16 pt-32 text-center sm:pt-40">
@@ -117,8 +188,9 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
               </div>
             )}
             {places && (
-              <div className="mt-1 flex items-center justify-center gap-1.5 text-muted">
-                <MapPin className="h-4 w-4 text-gold" /> {places}
+              <div className="mt-1 text-muted">
+                <MapPin className="mr-1.5 inline-block h-4 w-4 align-[-2px] text-gold" />
+                {places}
               </div>
             )}
           </motion.div>
@@ -128,9 +200,12 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.6 }}
-              className="mx-auto mt-8 max-w-2xl font-serif text-2xl italic leading-relaxed text-gold-light sm:text-3xl"
+              // эпитафия-стих (с переносами строк) чуть мельче на телефоне, чтобы строки помещались целиком
+              className={`mx-auto mt-8 max-w-2xl whitespace-pre-line font-serif italic leading-relaxed text-gold-light sm:text-3xl ${
+                m.epitaph.includes('\n') ? 'text-xl' : 'text-2xl'
+              }`}
             >
-              «{m.epitaph}»
+              «{glueDashes(m.epitaph)}»
             </motion.p>
           )}
           {canNarrate && <NarrationButton n={narration} />}
@@ -155,16 +230,18 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                 .map((p) => p.trim())
                 .filter(Boolean)
                 .map((p, i) => (
-                <p
-                  key={i}
-                  data-narr={`bio-${i}`}
-                  className={`whitespace-pre-line ${hl(`bio-${i}`)} ${
-                    i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
-                  }`}
-                >
-                  {p}
-                </p>
-              ))}
+                  <div key={i} data-narr={`bio-${i}`} className={`flow-root ${hl(`bio-${i}`)}`}>
+                    {photosOf(i).length > 0 && photosOf(i).length < 3 && <BioPhotos ids={photosOf(i)} captions={m.captions} onOpen={openPhoto} />}
+                    <p
+                      className={`whitespace-pre-line ${
+                        i === 0 ? 'first-letter:float-left first-letter:mr-2 first-letter:font-serif first-letter:text-6xl first-letter:leading-[0.9] first-letter:text-gold' : ''
+                      }`}
+                    >
+                      {glueDashes(p)}
+                    </p>
+                    {photosOf(i).length >= 3 && <BioPhotoStrip ids={photosOf(i)} captions={m.captions} onOpen={openPhoto} />}
+                  </div>
+                ))}
             </div>
           </Block>
         )}
@@ -172,14 +249,14 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
         {m.timeline.length > 0 && (
           <Block title="Хронология">
             <div data-narr="timeline" className={hl('timeline')}>
-              <Timeline items={m.timeline} />
+              <Timeline items={m.timeline} captions={m.captions} onOpenPhoto={openPhoto} />
             </div>
           </Block>
         )}
 
         {m.galleryIds.length > 0 && (
           <Block title="Фотографии">
-            <Gallery ids={m.galleryIds} />
+            <Gallery ids={m.galleryIds} captions={m.captions} onOpen={(i) => openPhoto(m.galleryIds[i])} />
           </Block>
         )}
 
@@ -216,7 +293,7 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
                   className="card relative p-6 pt-10 sm:p-8 sm:pt-12"
                 >
                   <span className="absolute left-6 top-2 font-serif text-7xl leading-none text-gold/30">“</span>
-                  <p className="font-serif text-xl italic leading-relaxed">{w.text}</p>
+                  <p className="font-serif text-xl italic leading-relaxed">{glueDashes(w.text)}</p>
                   <footer className="mt-4 text-sm text-muted">
                     <span className="font-semibold text-gold-light">{w.author}</span>
                     {w.relation && `, ${w.relation}`}
@@ -252,23 +329,26 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
             <div className="text-center sm:text-left">
               <p className="text-muted">Отсканируйте, чтобы открыть эту страницу памяти</p>
               <p className="mt-2 break-all font-mono text-sm text-gold-light">{m.qrUrl}</p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
-                <Button size="sm" icon={QrCode} onClick={() => go({ name: 'qr', id })}>
-                  QR-студия
-                </Button>
-                <Button size="sm" icon={Download} onClick={() => exportWithToast(m)}>
-                  Скачать ZIP
-                </Button>
-              </div>
+              {!visitor && (
+                <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
+                  <Button size="sm" icon={QrCode} onClick={() => go({ name: 'qr', id })}>
+                    QR-студия
+                  </Button>
+                  <Button size="sm" icon={Download} onClick={() => exportWithToast(m)}>
+                    Скачать ZIP
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </Block>
       </div>
 
       <footer className="border-t border-line/60 py-10 text-center text-sm text-muted">
-        Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span>
+        Создано сервисом <span className="font-serif text-gold-light">«Наследие»</span> · {SLOGAN_TEXT}
       </footer>
 
+      <PhotoLightbox ids={photoIds} captions={m.captions} index={photoIndex} onClose={() => setPhotoIndex(-1)} />
       <NarrationBar n={narration} />
     </div>
   );

@@ -2,6 +2,8 @@ export interface TimelineEvent {
   year: string;
   title: string;
   text: string;
+  /** Фото к событию (id медиа) */
+  photoIds?: string[];
 }
 
 export interface Word {
@@ -26,12 +28,18 @@ export interface Memorial {
   deathPlace: string;
   epitaph: string;
   biography: string;
+  /** Фото к абзацам биографии: [номер абзаца, как в biography.split(/\n{2,}/)] → id медиа */
+  biographyPhotos?: string[][];
   portraitId: string | null;
   timeline: TimelineEvent[];
   galleryIds: string[];
+  /** Подписи к фото: id медиа → «1960. Ресторан „Астория“» */
+  captions?: Record<string, string>;
   videoIds: string[];
   animatedVideoId: string | null;
   audioIds: string[];
+  /** Озвучка биографии (MP3): если есть, «Послушать историю жизни» играет её вместо синтеза речи */
+  narrationId?: string | null;
   words: Word[];
   contacts: Contacts;
   /** Символ на QR-карточке: крест, звезда или без символа */
@@ -39,11 +47,13 @@ export interface Memorial {
   qrUrl: string;
   createdAt: string;
   updatedAt: string;
+  /** Для локальной правки встроенной страницы: версия сайта, к которой правка относится */
+  builtinRev?: string;
 }
 
 export type MediaKind = 'image' | 'video' | 'audio';
 
-/** Запись в IndexedDB: исходный файл + миниатюра */
+/** Запись в IndexedDB: исходный файл + миниатюра. id вида «/images/…» — файл сайта из public/ */
 export interface MediaRecord {
   id: string;
   kind: MediaKind;
@@ -63,7 +73,8 @@ export type MediaMeta = Omit<MediaRecord, 'blob' | 'thumb'>;
 export type Screen =
   | { name: 'home' }
   | { name: 'editor'; id: string | null }
-  | { name: 'viewer'; id: string; from?: 'home' | 'editor' }
+  /** visitor — страницу открыли по QR или прямой ссылке: без меню и служебных кнопок */
+  | { name: 'viewer'; id: string; from?: 'home' | 'editor'; visitor?: boolean }
   | { name: 'qr'; id: string | null }
   | { name: 'settings' };
 

@@ -27,6 +27,11 @@ export function formatDate(date: string): string {
   return `${Number(m[3])} ${MONTHS[Number(m[2]) - 1]} ${m[1]} г.`;
 }
 
+/** Неразрывный пробел перед тире — по правилам русской типографики тире не начинает строку */
+export function glueDashes(s: string): string {
+  return s.replace(/ ([—–])/g, '\u00a0$1');
+}
+
 export function formatBytes(bytes: number): string {
   if (!bytes) return '0 Б';
   const units = ['Б', 'КБ', 'МБ', 'ГБ', 'ТБ'];

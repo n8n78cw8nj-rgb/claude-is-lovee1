@@ -1,7 +1,7 @@
 import JSZip from 'jszip';
 import type { MediaRecord, Memorial } from '../types/memorial';
 import { qrPngBlob } from './qr';
-import { getMedia, getMemorials, mediaIdsOf } from './storage';
+import { getStoredMemorials, isStaticMedia, mediaIdsOf, readMedia } from './storage';
 import { buildNarration } from './narration';
 import { downloadBlob, escapeHtml, extFromMime, formatDate, lifeYears, slugify } from './utils';
 
@@ -36,9 +36,11 @@ async function addMedia(zip: JSZip, ids: string[], onProgress?: Progress): Promi
   let i = 0;
   for (const id of ids) {
     i++;
-    const rec = await getMedia(id);
+    const rec = await readMedia(id);
     if (!rec) continue;
-    const file = `media/${id}.${extFromMime(rec.mime, rec.name)}`;
+    // файл сайта: «/images/gallery/01_1939_детство.jpg» → media/images_gallery_01_1939_детство.jpg
+    const key = isStaticMedia(id) ? id.replace(/^\/+/, '').replace(/\.[^./]+$/, '').replace(/[^\p{L}\p{N}_-]+/gu, '_') : id;
+    const file = `media/${key}.${extFromMime(rec.mime, rec.name)}`;
     // медиа уже сжаты — упаковываем без повторного сжатия
     zip.file(file, rec.blob, { compression: 'STORE', binary: true });
     let thumb: string | undefined;
@@ -63,9 +65,9 @@ function stamp() {
   return new Date().toISOString().slice(0, 10);
 }
 
-/** Резервная копия всех страниц и медиа */
+/** Резервная копия всех страниц и медиа (встроенные страницы — часть сайта, в копию не входят, если их не правили) */
 export async function exportAll(onProgress?: Progress): Promise<void> {
-  const memorials = getMemorials();
+  const memorials = getStoredMemorials();
   const zip = new JSZip();
   const ids = [...new Set(memorials.flatMap(mediaIdsOf))];
   const media = await addMedia(zip, ids, onProgress);
@@ -110,10 +112,25 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
   const e = escapeHtml;
   const src = (id: string | null) => (id && media.get(id)?.file) || '';
   const thumb = (id: string) => media.get(id)?.thumb || src(id);
+  const caption = (id: string) => m.captions?.[id] ?? '';
+  const figure = (id: string, cls: string) =>
+    `<figure class="${cls}"><a href="${src(id)}" target="_blank"><img loading="lazy" src="${thumb(id)}" alt="${e(caption(id))}"></a>${
+      caption(id) ? `<figcaption>${e(caption(id))}</figcaption>` : ''
+    }</figure>`;
+  // абзацы считаем так же, как страница в приложении, — фото привязаны к номеру абзаца
   const para = (t: string) =>
     t
       .split(/\n{2,}/)
-      .map((p) => `<p>${e(p).replace(/\n/g, '<br>')}</p>`)
+      .map((p) => p.trim())
+      .filter(Boolean)
+      .map((p, i) => {
+        const photos = (m.biographyPhotos?.[i] ?? []).filter((id) => media.has(id));
+        const text = `<p>${e(p).replace(/\n/g, '<br>')}</p>`;
+        // три фото и больше — лентой под абзацем, как на странице в приложении
+        if (photos.length >= 3)
+          return `<div class="para">${text}<div class="strip n${Math.min(photos.length, 5)}">${photos.map((id) => figure(id, 'photo')).join('')}</div></div>`;
+        return `<div class="para">${photos.map((id) => figure(id, 'bio-photo')).join('')}${text}</div>`;
+      })
       .join('');
 
   const sections: string[] = [];
@@ -125,13 +142,21 @@ function renderStaticPage(m: Memorial, media: Map<string, ExportedMedia>): strin
   if (m.biography) sections.push(`<section><h2>Биография</h2><div class="bio">${para(m.biography)}</div></section>`);
   if (m.timeline.length) {
     sections.push(`<section><h2>Хронология</h2><ol class="timeline">${m.timeline
-      .map((t) => `<li><span class="year">${e(t.year)}</span><h3>${e(t.title)}</h3>${t.text ? `<p>${e(t.text)}</p>` : ''}</li>`)
+      .map(
+        (t) =>
+          `<li><span class="year">${e(t.year)}</span><h3>${e(t.title)}</h3>${t.text ? `<p>${e(t.text)}</p>` : ''}${
+            (t.photoIds ?? [])
+              .filter((id) => media.has(id))
+              .map((id) => `<a href="${src(id)}" target="_blank"><img class="tl-photo" loading="lazy" src="${thumb(id)}" alt="${e(caption(id))}"></a>`)
+              .join('')
+          }</li>`,
+      )
       .join('')}</ol></section>`);
   }
   const gallery = m.galleryIds.filter((id) => media.has(id));
   if (gallery.length) {
     sections.push(`<section><h2>Фотографии</h2><div class="gallery">${gallery
-      .map((id) => `<a href="${src(id)}" target="_blank"><img loading="lazy" src="${thumb(id)}" alt=""></a>`)
+      .map((id) => figure(id, 'photo'))
       .join('')}</div></section>`);
   }
   const videos = m.videoIds.filter((id) => media.has(id));
@@ -183,6 +208,12 @@ h2{font:700 30px 'PT Serif',serif;margin:0 0 18px;color:#D4B07A}h3{margin:0;font
 .year{color:#B8925A;font-weight:600}.timeline p{margin:4px 0 0;color:#9CA3AF}
 .gallery{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .gallery img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;display:block}
+.gallery figure{margin:0}.gallery figcaption,.bio-photo figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin:6px 0 0}
+.para{display:flow-root}.bio-photo{float:right;width:220px;margin:6px 0 12px 20px}.bio-photo img{width:100%;border-radius:12px;display:block}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}.strip figure{margin:0}.strip img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:12px;display:block}.strip figcaption{color:#9CA3AF;font-size:13px;line-height:1.4;margin-top:6px}
+.strip.n4{grid-template-columns:repeat(4,1fr)}@media(min-width:900px){.strip.n5{grid-template-columns:repeat(5,1fr)}}
+.tl-photo{display:inline-block;margin:8px 8px 0 0;height:96px;border-radius:10px;object-fit:cover}
+@media(max-width:600px){.bio-photo{float:none;width:auto;margin:0 0 12px}}
 video{width:100%;border-radius:14px;background:#000;margin-bottom:14px}.alive{max-height:80vh}
 audio{width:100%}figure{margin:0 0 14px}figcaption{color:#9CA3AF;font-size:14px;margin-bottom:6px}
 blockquote{margin:0 0 20px;padding-left:18px;border-left:3px solid #B8925A}blockquote p{font:italic 20px/1.5 'PT Serif',serif;margin:0}
@@ -197,7 +228,7 @@ ${m.portraitId && src(m.portraitId) ? `<img class="portrait" src="${src(m.portra
 <div class="years">${e(lifeYears(m.birthDate, m.deathDate))}</div>
 ${dates ? `<div class="muted">${e(dates)}</div>` : ''}
 ${places ? `<div class="muted">${e(places)}</div>` : ''}
-${m.epitaph ? `<p class="epitaph">«${e(m.epitaph)}»</p>` : ''}
+${m.epitaph ? `<p class="epitaph">«${e(m.epitaph).replace(/\n/g, '<br>')}»</p>` : ''}
 <button id="listen" type="button" hidden>▶ Послушать историю жизни</button>
 </header>
 ${sections.join('\n')}
@@ -205,10 +236,20 @@ ${sections.join('\n')}
 <footer>Создано сервисом «Наследие»</footer>
 </main>
 <script>
-// Озвучка биографии встроенным синтезатором речи браузера
+// Озвучка биографии: готовый MP3, если он есть, иначе — встроенный синтезатор речи браузера
 (function(){
   var parts = ${JSON.stringify(buildNarration(m).map((c) => c.text)).replace(/</g, '\\u003c')};
+  var file = ${JSON.stringify(src(m.narrationId ?? null) || null)};
   var btn = document.getElementById('listen');
+  if (file){
+    var audio = new Audio(file); btn.hidden = false;
+    audio.onended = function(){ btn.textContent = '▶ Послушать историю жизни'; };
+    btn.onclick = function(){
+      if (audio.paused){ audio.play(); btn.textContent = '❚❚ Пауза'; }
+      else { audio.pause(); btn.textContent = '▶ Продолжить'; }
+    };
+    return;
+  }
   if (!('speechSynthesis' in window) || !parts.length) return;
   btn.hidden = false;
   var i = 0, playing = false, token = 0;

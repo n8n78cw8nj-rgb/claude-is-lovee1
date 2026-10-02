@@ -2,7 +2,7 @@ import JSZip from 'jszip';
 import type { Memorial } from '../types/memorial';
 import { EXPORT_FORMAT, type ExportManifest } from './export';
 import { storeBlob } from './media';
-import { buildQrUrl, getMemorials, normalizeMemorial, saveMemorials } from './storage';
+import { buildQrUrl, getMemorials, isStaticMedia, normalizeMemorial, saveMemorials } from './storage';
 import { uid } from './utils';
 
 export interface ImportResult {
@@ -40,8 +40,9 @@ export async function importZip(
   }
 
   const idMap = new Map<string, string>();
+  // файлы сайта («/images/…») из архива сохраняются в браузер под обычными id
   const mapId = (id: string) => {
-    if (mode === 'replace') return id;
+    if (mode === 'replace' && !isStaticMedia(id)) return id;
     if (!idMap.has(id)) idMap.set(id, uid());
     return idMap.get(id)!;
   };
@@ -72,20 +73,23 @@ export async function importZip(
   const existing = new Set(getMemorials().map((m) => m.id));
   let replaced = 0;
   const memorials: Memorial[] = manifest.memorials.map((raw) => {
-    const m = normalizeMemorial(raw);
+    const n = normalizeMemorial(raw);
+    const remap = (id: string | null | undefined) => (id ? mapId(id) : null);
+    const m: Memorial = {
+      ...n,
+      portraitId: remap(n.portraitId),
+      animatedVideoId: remap(n.animatedVideoId),
+      narrationId: remap(n.narrationId),
+      galleryIds: n.galleryIds.map(mapId),
+      biographyPhotos: n.biographyPhotos?.map((list) => list.map(mapId)),
+      timeline: n.timeline.map((t) => ({ ...t, photoIds: t.photoIds?.map(mapId) })),
+      captions: n.captions && Object.fromEntries(Object.entries(n.captions).map(([id, c]) => [mapId(id), c])),
+      videoIds: n.videoIds.map(mapId),
+      audioIds: n.audioIds.map(mapId),
+    };
     if (mode === 'copy') {
       const newId = uid();
-      const remap = (id: string | null) => (id ? mapId(id) : null);
-      return {
-        ...m,
-        id: newId,
-        qrUrl: buildQrUrl(newId),
-        portraitId: remap(m.portraitId),
-        animatedVideoId: remap(m.animatedVideoId),
-        galleryIds: m.galleryIds.map(mapId),
-        videoIds: m.videoIds.map(mapId),
-        audioIds: m.audioIds.map(mapId),
-      };
+      return { ...m, id: newId, qrUrl: buildQrUrl(newId), builtinRev: undefined };
     }
     if (existing.has(m.id)) replaced++;
     return m;
@@ -99,6 +103,10 @@ export async function importZip(
       ...m,
       portraitId: m.portraitId && keep(m.portraitId) ? m.portraitId : null,
       animatedVideoId: m.animatedVideoId && keep(m.animatedVideoId) ? m.animatedVideoId : null,
+      narrationId: m.narrationId && keep(m.narrationId) ? m.narrationId : null,
+      biographyPhotos: m.biographyPhotos?.map((list) => list.filter(keep)),
+      timeline: m.timeline.map((t) => ({ ...t, photoIds: t.photoIds?.filter(keep) })),
+      captions: m.captions && Object.fromEntries(Object.entries(m.captions).filter(([id]) => keep(id))),
       galleryIds: m.galleryIds.filter(keep),
       videoIds: m.videoIds.filter(keep),
       audioIds: m.audioIds.filter(keep),
