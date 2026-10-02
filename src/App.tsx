@@ -21,9 +21,10 @@ function screenKey(s: Screen): string {
 /** #/m/<id> — прямая ссылка на страницу памяти (её кодирует QR) */
 const PAGE_HASH = /^#\/m\/([^/?#]+)/;
 
+/** Сайт открыли по QR или прямой ссылкой — показываем страницу памяти посетителю */
 function screenFromHash(): Screen {
   const m = PAGE_HASH.exec(location.hash);
-  return m ? { name: 'viewer', id: decodeURIComponent(m[1]) } : { name: 'home' };
+  return m ? { name: 'viewer', id: decodeURIComponent(m[1]), visitor: true } : { name: 'home' };
 }
 
 export default function App() {
@@ -71,12 +72,14 @@ export default function App() {
     }
   }, [screen]);
 
-  // ссылку вставили в адресную строку уже открытого сайта
+  // ссылку вставили в адресную строку уже открытого сайта: посетитель так и остаётся посетителем,
+  // а в работе с сайтом служебные кнопки остаются на месте
   useEffect(() => {
     const onHash = () => {
       const next = screenFromHash();
       setScreen((cur) => {
-        if (next.name === 'viewer') return screenKey(cur) === screenKey(next) ? cur : next;
+        if (next.name === 'viewer')
+          return screenKey(cur) === screenKey(next) ? cur : { ...next, visitor: cur.name === 'viewer' && !!cur.visitor };
         return cur.name === 'viewer' ? next : cur;
       });
       pendingAnchor.current = 'top';
@@ -108,7 +111,7 @@ export default function App() {
               </>
             )}
             {screen.name === 'editor' && <Editor id={screen.id} />}
-            {screen.name === 'viewer' && <Viewer id={screen.id} from={screen.from} />}
+            {screen.name === 'viewer' && <Viewer id={screen.id} from={screen.from} visitor={screen.visitor} />}
             {screen.name === 'qr' && <QRStudio id={screen.id} />}
             {screen.name === 'settings' && <Settings />}
           </ErrorBoundary>

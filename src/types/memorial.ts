@@ -73,7 +73,8 @@ export type MediaMeta = Omit<MediaRecord, 'blob' | 'thumb'>;
 export type Screen =
   | { name: 'home' }
   | { name: 'editor'; id: string | null }
-  | { name: 'viewer'; id: string; from?: 'home' | 'editor' }
+  /** visitor — страницу открыли по QR или прямой ссылке: без меню и служебных кнопок */
+  | { name: 'viewer'; id: string; from?: 'home' | 'editor'; visitor?: boolean }
   | { name: 'qr'; id: string | null }
   | { name: 'settings' };
 

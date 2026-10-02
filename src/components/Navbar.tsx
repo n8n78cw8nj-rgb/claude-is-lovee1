@@ -36,6 +36,9 @@ export function Navbar() {
 
   useEffect(() => setOpen(false), [screen]);
 
+  // посетителю по QR — только логотип, без меню сайта
+  const visitor = screen.name === 'viewer' && !!screen.visitor;
+
   const links = [
     { label: 'Мои страницы', icon: LayoutGrid, active: screen.name === 'home', onClick: () => goHome('pages') },
     { label: 'QR-студия', icon: QrCode, active: screen.name === 'qr', onClick: () => go({ name: 'qr', id: null }) },
@@ -51,27 +54,31 @@ export function Navbar() {
       <nav className="container-page flex h-16 items-center justify-between sm:h-20">
         <Logo onClick={() => goHome('top')} />
 
-        <div className="hidden items-center gap-1 md:flex">
-          {links.map((l) => (
-            <button
-              key={l.label}
-              onClick={l.onClick}
-              className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[15px] transition ${
-                l.active ? 'text-gold-light' : 'text-muted hover:text-white'
-              }`}
-            >
-              <l.icon className="h-4 w-4" />
-              {l.label}
-            </button>
-          ))}
-          <Button variant="gold" size="sm" icon={Plus} className="ml-3" onClick={() => go({ name: 'editor', id: null })}>
-            Создать
-          </Button>
-        </div>
+        {!visitor && (
+          <>
+            <div className="hidden items-center gap-1 md:flex">
+              {links.map((l) => (
+                <button
+                  key={l.label}
+                  onClick={l.onClick}
+                  className={`flex items-center gap-2 rounded-xl px-4 py-2 text-[15px] transition ${
+                    l.active ? 'text-gold-light' : 'text-muted hover:text-white'
+                  }`}
+                >
+                  <l.icon className="h-4 w-4" />
+                  {l.label}
+                </button>
+              ))}
+              <Button variant="gold" size="sm" icon={Plus} className="ml-3" onClick={() => go({ name: 'editor', id: null })}>
+                Создать
+              </Button>
+            </div>
 
-        <button className="rounded-lg p-2 text-white md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Меню">
-          {open ? <X /> : <Menu />}
-        </button>
+            <button className="rounded-lg p-2 text-white md:hidden" onClick={() => setOpen((v) => !v)} aria-label="Меню">
+              {open ? <X /> : <Menu />}
+            </button>
+          </>
+        )}
       </nav>
 
       <AnimatePresence>

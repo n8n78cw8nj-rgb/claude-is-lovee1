@@ -86,7 +86,8 @@ function BioPhotoStrip({ ids, captions, onOpen }: { ids: string[]; captions?: Re
   );
 }
 
-export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
+/** visitor — открыли по QR: страница без кнопок редактора, списка, QR-студии и выгрузки */
+export function Viewer({ id, from, visitor = false }: { id: string; from?: 'home' | 'editor'; visitor?: boolean }) {
   const { get } = useMemorials();
   const { go, goHome } = useNav();
   const m = get(id);
@@ -146,14 +147,16 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
   return (
     <div className="relative">
       {/* верхняя панель */}
-      <div className="fixed right-4 top-20 z-40 flex gap-2 sm:right-6 sm:top-24">
-        <Button size="sm" variant="subtle" className="glass" icon={Pencil} onClick={() => go({ name: 'editor', id })}>
-          <span className="hidden sm:inline">Редактор</span>
-        </Button>
-        <Button size="sm" variant="outline" className="glass" icon={ArrowLeft} onClick={back}>
-          {from === 'editor' ? 'К редактору' : 'Назад к списку'}
-        </Button>
-      </div>
+      {!visitor && (
+        <div className="fixed right-4 top-20 z-40 flex gap-2 sm:right-6 sm:top-24">
+          <Button size="sm" variant="subtle" className="glass" icon={Pencil} onClick={() => go({ name: 'editor', id })}>
+            <span className="hidden sm:inline">Редактор</span>
+          </Button>
+          <Button size="sm" variant="outline" className="glass" icon={ArrowLeft} onClick={back}>
+            {from === 'editor' ? 'К редактору' : 'Назад к списку'}
+          </Button>
+        </div>
+      )}
 
       {/* 1. Hero */}
       <header className="relative overflow-hidden pb-16 pt-32 text-center sm:pt-40">
@@ -326,14 +329,16 @@ export function Viewer({ id, from }: { id: string; from?: 'home' | 'editor' }) {
             <div className="text-center sm:text-left">
               <p className="text-muted">Отсканируйте, чтобы открыть эту страницу памяти</p>
               <p className="mt-2 break-all font-mono text-sm text-gold-light">{m.qrUrl}</p>
-              <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
-                <Button size="sm" icon={QrCode} onClick={() => go({ name: 'qr', id })}>
-                  QR-студия
-                </Button>
-                <Button size="sm" icon={Download} onClick={() => exportWithToast(m)}>
-                  Скачать ZIP
-                </Button>
-              </div>
+              {!visitor && (
+                <div className="mt-5 flex flex-wrap justify-center gap-3 sm:justify-start">
+                  <Button size="sm" icon={QrCode} onClick={() => go({ name: 'qr', id })}>
+                    QR-студия
+                  </Button>
+                  <Button size="sm" icon={Download} onClick={() => exportWithToast(m)}>
+                    Скачать ZIP
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </Block>
