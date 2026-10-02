@@ -4,6 +4,7 @@ import QRCode from 'qrcode';
 import { Suspense, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { MONUMENT } from '../lib/builtin';
+import { isStaticMedia, staticUrl } from '../lib/storage';
 import { Particles } from './Particles';
 
 /** 0.01 рад за кадр при 60 fps — медленное постоянное вращение */
@@ -35,7 +36,7 @@ function graniteTexture() {
   return t;
 }
 
-function engravingTexture() {
+function engravingTexture(portrait: HTMLImageElement | null) {
   const W = 700;
   const H = 1000;
   const c = document.createElement('canvas');
@@ -49,23 +50,33 @@ function engravingTexture() {
   ctx.strokeStyle = gold;
   ctx.fillStyle = gold;
 
-  // медальон-портрет
+  // медальон: портрет со страницы, пока его нет — силуэт
   ctx.save();
   ctx.beginPath();
   ctx.ellipse(W / 2, 250, 125, 160, 0, 0, Math.PI * 2);
   ctx.clip();
-  const sep = ctx.createLinearGradient(0, 90, 0, 410);
-  sep.addColorStop(0, '#c9ab83');
-  sep.addColorStop(1, '#5a4430');
-  ctx.fillStyle = sep;
-  ctx.fillRect(0, 0, W, H);
-  ctx.fillStyle = 'rgba(35,25,15,0.85)';
-  ctx.beginPath();
-  ctx.ellipse(W / 2, 225, 52, 66, 0, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.beginPath();
-  ctx.ellipse(W / 2, 420, 125, 120, 0, Math.PI, 0);
-  ctx.fill();
+  if (portrait) {
+    // заполняет овал, лицо по центру — как в круге портрета на странице
+    const s = Math.max(250 / portrait.naturalWidth, 320 / portrait.naturalHeight);
+    const w = portrait.naturalWidth * s;
+    const h = portrait.naturalHeight * s;
+    ctx.filter = 'grayscale(1) sepia(0.55)';
+    ctx.drawImage(portrait, W / 2 - w / 2, 250 - h / 2, w, h);
+    ctx.filter = 'none';
+  } else {
+    const sep = ctx.createLinearGradient(0, 90, 0, 410);
+    sep.addColorStop(0, '#c9ab83');
+    sep.addColorStop(1, '#5a4430');
+    ctx.fillStyle = sep;
+    ctx.fillRect(0, 0, W, H);
+    ctx.fillStyle = 'rgba(35,25,15,0.85)';
+    ctx.beginPath();
+    ctx.ellipse(W / 2, 225, 52, 66, 0, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.ellipse(W / 2, 420, 125, 120, 0, Math.PI, 0);
+    ctx.fill();
+  }
   ctx.restore();
   ctx.lineWidth = 8;
   ctx.strokeStyle = gold;
@@ -157,7 +168,15 @@ function ProceduralMonument() {
   useEffect(() => {
     document.fonts?.ready.then(() => setFontsReady(true));
   }, []);
-  const engraving = useMemo(engravingTexture, [fontsReady]);
+  // и когда загрузится портрет
+  const [portrait, setPortrait] = useState<HTMLImageElement | null>(null);
+  useEffect(() => {
+    if (!MONUMENT.portrait || !isStaticMedia(MONUMENT.portrait)) return;
+    const img = new Image();
+    img.onload = () => setPortrait(img);
+    img.src = staticUrl(MONUMENT.portrait);
+  }, []);
+  const engraving = useMemo(() => engravingTexture(portrait), [fontsReady, portrait]);
   const stele = useMemo(steleGeometry, []);
   const qr = useMemo(() => qrTexture(MONUMENT.link), []);
   const star = useMemo(starShape, []);

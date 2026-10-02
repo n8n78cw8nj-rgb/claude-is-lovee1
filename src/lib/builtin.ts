@@ -150,7 +150,7 @@ export const BUILTINS: Memorial[] = [fromJson(data as unknown as MemorialJson)];
 /** Страница для главного экрана: её имя и QR — на 3D-памятнике */
 export const FEATURED = BUILTINS[0];
 
-/** Надпись на памятнике главного экрана: «ЕРОХИН» / «НИКОЛАЙ ПЕТРОВИЧ» / «1939 — 2000» */
+/** Памятник главного экрана: «ЕРОХИН» / «НИКОЛАЙ ПЕТРОВИЧ» / «1939 — 2000», портрет в медальоне, QR */
 export const MONUMENT = (() => {
   const [surname = '', ...given] = FEATURED.fullName.trim().split(/\s+/);
   return {
@@ -158,6 +158,7 @@ export const MONUMENT = (() => {
     given: given.join(' ').toUpperCase(),
     years: lifeYears(FEATURED.birthDate, FEATURED.deathDate),
     symbol: FEATURED.symbol,
+    portrait: FEATURED.portraitId,
     link: FEATURED.qrUrl,
   };
 })();
